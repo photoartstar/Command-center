@@ -34,7 +34,8 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `classes/<id>`, `attendance/<date>-<class>` | Rosters, absences, drafted emails | scan, page |
 | `reimb/<expenseId>` | Expenses to claim, tagged by payer | morning scan, page tags |
 | `meta/nyu`, `meta/teaching` | NYU terms and dates, next class, `week` (this week's plan per class) | morning scan |
-| `sort/<transactionId>` | Sean's category for a Zoho charge (Brigitte, NYFA, QAM, Practice, Teaching, Personal, Other business) | page |
+| `sort/<transactionId>` | What Sean did with a Zoho charge `{mode: biz|qam|brigitte|refund|invoice|personal, cat, note, vendorKey}` or `{parked}`; teaches the guesses | page |
+| `charges/<transactionId>` | Claude's look-up for a charge `{items, suggest, mode, why, question}` | morning scan |
 
 Version 3 of the page (Nov 15) also reads Zoho Books live (bank and card balances, unpaid invoices, items) and can create a customer plus a DRAFT invoice. "Tell Claude" uses the page's `sample` capability to file a typed or dictated note; when that is unavailable it saves the note with `needsFiling: true` for the next scan.
 
