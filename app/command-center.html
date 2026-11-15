@@ -491,6 +491,17 @@ function whenLabel(s){
   if(n<7) return DOW[parse(s).getDay()];
   const d=parse(s); return MON[d.getMonth()]+" "+d.getDate();
 }
+/* Deadlines on grants: never "days late". Applied shows Applied; a passed deadline on a possible grant rolls to its likely next cycle. */
+function nextDl(dl){ if(!dl) return "9999"; let d=parse(dl); if(!d) return "9999"; while(d<TODAY()) d=new Date(d.getFullYear()+1,d.getMonth(),d.getDate(),12); return ymd(d); }
+function oppWhen(dl, stage){
+  const st=String(stage||"prospect").toLowerCase();
+  const closed={submitted:"Applied",applied:"Applied",won:"Awarded",awarded:"Awarded",committed:"Awarded",lost:"Not awarded",declined:"Not awarded"}[st];
+  if(!dl) return closed?`<span class="when">${closed}</span>`:`<span class="when">rolling</span>`;
+  if(closed) return `<span class="when">${closed}</span>`;
+  const n=daysUntil(dl); if(n===null||n>=0) return `<span class="when ${whenClass(dl)}">${whenLabel(dl)}</span>`;
+  let d=parse(dl); while(d<TODAY()) d=new Date(d.getFullYear()+1,d.getMonth(),d.getDate(),12);
+  return `<span class="when" title="Last deadline ${esc(dl)}">next ~${MON[d.getMonth()]} ${d.getFullYear()}</span>`;
+}
 function whenClass(s){ const n=daysUntil(s); if(n===null) return ""; if(n<=1) return "hot"; if(n<=7) return "soon"; return ""; }
 const longDate = s => { const d=parse(s); return d? DOW[d.getDay()]+", "+MON[d.getMonth()]+" "+d.getDate() : ""; };
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -680,7 +691,7 @@ function appRow(r){
   return `<div class="row a-qam" data-app="${esc(r.id)}"><div class="ico">${SVG.grant}</div>
     <div class="txt"><div class="t"><button class="pin ${pin?"on":""}" type="button" data-apppin="1" aria-label="Must apply this year" title="Must apply this year">📌</button>${esc(title)}${fitChip(cell(r,F.f.fit))}</div>
       <div class="s">${esc(cell(r,F.f.funder)||"")}${amt?" · "+money(amt):(cell(r,F.f.amountNote)?" · "+esc(cell(r,F.f.amountNote)):"")}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(cell(r,F.f.fitWhy),fb?{note:fb}:null)}</div>
-    ${dl?`<span class="when ${whenClass(dl)}">${whenLabel(dl)}</span>`:`<span class="when">rolling</span>`}
+    ${oppWhen(dl,st)}
     <div class="acts"><span class="stages">${QST.map(([k,l])=>`<button type="button" class="stg ${st===k?"on":""}" data-appstage="${esc(k)}">${l}</button>`).join("")}</span>
       ${["Prospect","Drafting","Cultivating"].includes(st)?`<a class="act go" href="${esc(apply)}" target="_blank" rel="noopener">Apply</a>`:""}${st==="Not a fit"&&!fb?`<span class="whyin"><input type="text" data-appwhyin="${esc(r.id)}" placeholder="Why not a fit? (teaches future scans)" aria-label="Why not a fit"><button class="act" type="button" data-appwhysave="${esc(r.id)}">Save</button></span>`:""}</div></div>`;
 }
@@ -690,7 +701,7 @@ function renderApps(){
   if(!S.funding){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
   const all=S.funding.filter(r=>!cell(r,F.f.stalled)), stg=r=>selName(cell(r,F.f.stage))||"Prospect";
   const pinOf=r=>!!(S.pipeline["at-"+r.id]||{}).pin;
-  const sortA=(a,b)=>(pinOf(b)-pinOf(a))||(cell(a,F.f.deadline)||"9999").localeCompare(cell(b,F.f.deadline)||"9999");
+  const sortA=(a,b)=>(pinOf(b)-pinOf(a))||nextDl(cell(a,F.f.deadline)).localeCompare(nextDl(cell(b,F.f.deadline)));
   const open=all.filter(r=>["Prospect","Cultivating","Drafting"].includes(stg(r))).filter(r=>!fit7||(+cell(r,F.f.fit)||0)>=7||pinOf(r)||stg(r)!=="Prospect").sort(sortA);
   const applied=all.filter(r=>stg(r)==="Submitted").sort(sortA);
   const won=all.filter(r=>["Awarded","Committed"].includes(stg(r))), lost=all.filter(r=>stg(r)==="Declined"), later=all.filter(r=>stg(r)==="Next year"), nofit=all.filter(r=>stg(r)==="Not a fit");
@@ -750,12 +761,12 @@ function oppRow(o){
   return `<div class="row a-practice" data-opp="${esc(o.id)}"><div class="ico">${o.type==="job"?SVG.job:SVG.grant}</div>
     <div class="txt"><div class="t"><button class="pin ${pin?"on":""}" type="button" data-pin="1" aria-label="Must apply this year" title="Must apply this year">📌</button>${esc(o.title)}${fitChip(o.fit)}</div>
       <div class="s">${esc(o.funder||"")}${o.amount?" · "+esc(o.amount):""}${safeUrl(o.url)?` · <a href="${esc(o.url)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(o.note,(S.pipeline[o.id]||{}).why)}</div>
-    ${o.deadline?`<span class="when ${whenClass(o.deadline)}">${whenLabel(o.deadline)}</span>`:`<span class="when">rolling</span>`}
+    ${oppWhen(o.deadline,st)}
     <div class="acts"><span class="stages">${STAGES.map(([k,l])=>`<button type="button" class="stg ${st===k?"on":""}" data-stage="${k}">${l}</button>`).join("")}</span>
       ${["prospect","drafting"].includes(st)?`<a class="act go" href="${esc(apply)}" target="_blank" rel="noopener">Apply</a>`:""}${st==="passed"&&!((S.pipeline[o.id]||{}).why||{}).note?`<span class="whyin"><input type="text" data-whyin="${esc(o.id)}" placeholder="Why not a fit? (teaches future scans)" aria-label="Why not a fit"><button class="act" type="button" data-whysave="${esc(o.id)}">Save</button></span>`:""}</div></div>`;
 }
 function renderPipeline(){
-  const sortP=(a,b)=>(!!(S.pipeline[b.id]||{}).pin - !!(S.pipeline[a.id]||{}).pin)||(a.deadline||"9999").localeCompare(b.deadline||"9999");
+  const sortP=(a,b)=>(!!(S.pipeline[b.id]||{}).pin - !!(S.pipeline[a.id]||{}).pin)||nextDl(a.deadline).localeCompare(nextDl(b.deadline));
   const build=(list,emptyMsg)=>{
     if(!list.length) return `<div class="empty">${SVG.calm}<span>${esc(emptyMsg)}</span></div>`;
     const active=list.filter(o=>["prospect","drafting"].includes(stageOf(o))).sort(sortP);
