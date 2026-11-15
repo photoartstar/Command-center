@@ -12,7 +12,7 @@ Three streams:
 Weekly rhythm:
 - Claude keeps the following week drafted in the Social Posts table (base `appPeWDhXHErd70GJ`, table `tblIE99nz7g8OI68i`).
 - Sean approves on the Command Center (QAM, Social tab).
-- **Sunday night:** Maureen gets a review email covering the following week's posts, and can also tick "Maureen OK" in Airtable. Both work.
+- **Sunday night:** Claude drafts Maureen's review email covering the following week's posts; Sean approves and sends it from On Deck. Maureen can also tick "Maureen OK" in Airtable. Both work.
 - **Tuesday:** Tasneem gets the following week's approved posts (image folders and instruction cards) and schedules them all in Meta. Questions go to the Thursday meeting.
 
 ## One-time setup (supervised session)
@@ -31,7 +31,7 @@ Never post, schedule, accept a Collab, message anyone, or change any Meta settin
 
 ## Sunday night: Maureen's review email
 
-Send ONE email from sean@seanfader.com to Maureen (mtowey@gmail.com), subject "QAM posts for the week of <date>", listing next week's posts in date order: day, title, caption, image folder link, and a line saying she can reply with changes or tick "Maureen OK" in Airtable. Plain and short. This is the only email any Command Center task sends. If nothing is planned, send nothing.
+Sean approves this email before it goes out (decided Nov 15). Create ONE Gmail DRAFT (never send) from sean@seanfader.com to Maureen (mtowey@gmail.com), subject "QAM posts for the week of <date>", listing next week's posts in date order: day, title, caption, image folder link, and a line saying she can reply with changes or tick "Maureen OK" in Airtable. Plain and short. Then write a QAM item `social-review-<date>` ("Approve and send Maureen's social review", due Monday, `src` = the draft's link) so it shows On Deck. If nothing is planned, make no draft. No Command Center task sends email on its own.
 
 ## Tuesday: Tasneem's handoff
 
