@@ -46,6 +46,16 @@ Still open:
 - **Big Goals moves.** The first practice pass fills the places and introducers from the Art Practice Master and his contacts. Sean should review them once.
 - **Cv watch** probably has the same Mac binding as the advisor (it carries local folders). Its new prompt may also need approval from a conversation linked to the Mac.
 
+## 2b. Switched on Nov 15 (partly)
+
+Sean said "fire up the scans" on Nov 15. Created, then PAUSED because tasks created from a session cannot carry connectors in this organization:
+- Command Center fast scan `trig_017uzRrntWmguaaJa5hDP7SS` (6:41am, 12:41pm, 5:41pm ET)
+- Command Center morning scan `trig_01YFxWSqykyUZrhVbiru1pqS` (6:11am ET)
+- Command Center Sunday night `trig_017nsA9wX4UggRucTTtvVK95` (Sundays 8:41pm ET)
+Their prompts read the instructions from Drive (Claude HQ > memory > context): command-center-scan.md `1Szeos3kqOgRnFAXOOXQ1xuLsC-favpUJ`, command-center-qam-social.md `1IjByJIQqgpc-BbDatsldQX_4oTE0wk5h`, command-center-people-wiki.md `1pXV0oFei_6KQgKt2IQJs2SoqxDHE6tzF`. Keep these in sync with `scans/`.
+To finish: Sean adds connectors (Gmail, Google Calendar, Google Drive, Google Docs, Google Sheets, Airtable, Zoho Books, Granola, Claude Code Remote) to each task in claude.ai and turns it on; then set `meta/config` = `{live: true, scanTriggerId: "trig_01YFxWSqykyUZrhVbiru1pqS", refreshTriggerId: "trig_017uzRrntWmguaaJa5hDP7SS"}`.
+The first scan was run by hand from the build session on Nov 15.
+
 ## 3. Switch-on steps (in a cloud session)
 
 1. Re-check every row in section 1 and apply the changes Sean approved.
