@@ -401,7 +401,7 @@ details.why .mine{font-style:italic}
     </section>
 
     <section class="view" data-route="money" hidden>
-      <div class="ahead"><div class="big" style="background:var(--money);color:var(--c-blush)">$</div><div><h1>Money</h1><p>On track means a positive bank balance and every card paid in full</p></div></div>
+      <div class="ahead"><div class="big" style="background:var(--money);color:var(--c-blush)">$</div><div><h1>Money</h1><p>On track means a positive bank balance and every card paid in full</p></div><button class="pbtn" type="button" id="go-reimb" style="margin-left:auto">Reimbursement</button></div>
       <div class="tiles" id="m-tiles"></div>
       <div class="tabs" role="tablist" id="money-tabs">
         <button class="tab" role="tab" data-tab="sort" aria-selected="true">Sort</button>
@@ -888,13 +888,27 @@ function renderMoney(){
   listInto(document.getElementById("money-items"), openItems("money").sort((x,y)=>(x.due||"9999").localeCompare(y.due||"9999")), "No bills due. Bills show up 3 days before they are due, with late-fee warnings.");
   renderCharges(); renderOwed(); renderReimb(); renderInvoice();
 }
+let RB={sel:{}};
+function rbBrief(payer, items){
+  const total=items.reduce((t,r)=>t+(+r.amount||0),0);
+  const lines=items.map(r=>`- ${r.date||""} · ${r.title} · ${money(+r.amount||0)}${r.id?" · Zoho transaction "+r.id:""}`).join("\n");
+  if(/NYFA/i.test(payer)) return `NYFA claim\n\nQAM costs I paid myself, ${items.length} items, ${money(total)}:\n${lines}\n\nFind each receipt in Gmail, make one PDF packet, put the costs on a Zoho invoice to NYFA (QAM), file it in Drive, and hand me the note to paste.`;
+  return `NYFA claim (same process, different payer)\n\nReimbursement claim to ${payer}, ${items.length} items, ${money(total)}:\n${lines}\n\nUse the nyfa-claim skill's steps, but bill ${payer} instead of NYFA: find each receipt in Gmail, make one PDF packet, put the costs on a Zoho invoice to ${payer} (draft, I send it), file it in Drive with the payer's name, and hand me a short note to send with it.`;
+}
 function renderReimb(){
   const re=document.getElementById("reimb"), payers=["NYFA","Brigitte Mulholland","Other"], open=S.reimb.filter(r=>r.status!=="paid");
-  re.innerHTML = open.length ? open.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(r=>`<div class="row a-money" data-reimb="${esc(r.id)}"><div class="ico">${SVG.bill}</div>
-      <div class="txt"><div class="t">${esc(r.title)}</div><div class="s">${esc(r.date||"")}${r.amount?" · "+money(r.amount):""}${r.payer?" · claim from "+esc(r.payer):" · not tagged"}${r.status==="claimed"?" · claimed":""}</div></div><span></span>
-      <div class="acts">${payers.map(p=>`<button class="act ${r.payer===p?"on":""}" type="button" data-payer="${esc(p)}">${esc(p)}</button>`).join("")}</div></div>`).join("")
-    + `<div class="note">Tag who pays you back. NYFA claims go through the NYFA claim flow; others get an invoice. When the money arrives and matches the claim invoice, these show as paid.</div>`
-    : `<div class="empty">${SVG.calm}<span>No expenses waiting to be claimed.</span></div>`;
+  if(!open.length){ re.innerHTML=`<div class="empty">${SVG.calm}<span>No expenses waiting to be claimed. Tag a charge "Reimburse from" in Sort and it lands here.</span></div>`; return; }
+  const groups={}; open.forEach(r=>{ (groups[r.payer||"Not tagged"]=groups[r.payer||"Not tagged"]||[]).push(r); });
+  re.innerHTML=Object.keys(groups).sort((a,b)=>a==="Not tagged"?1:b==="Not tagged"?-1:a.localeCompare(b)).map(p=>{
+    const list=groups[p].slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")), todo=list.filter(r=>r.status!=="claimed");
+    const picked=todo.filter(r=>RB.sel[r.id]!==false), total=picked.reduce((t,r)=>t+(+r.amount||0),0);
+    const href=NEW_CHAT+encodeURIComponent(rbBrief(p,picked));
+    return `<div class="sub-h">${esc(p)} · ${money(list.reduce((t,r)=>t+(+r.amount||0),0))}</div>`
+      + list.map(r=>`<div class="row a-money" data-reimb="${esc(r.id)}"><div class="ico">${r.status==="claimed"?SVG.check:`<input type="checkbox" data-rbsel="${esc(r.id)}" ${RB.sel[r.id]!==false?"checked":""} aria-label="Include in claim">`}</div>
+          <div class="txt"><div class="t">${esc(r.title)}</div><div class="s">${esc(r.date||"")}${r.amount?" · "+money(r.amount):""}${r.status==="claimed"?" · claimed, waiting for payment":""}</div></div><span></span>
+          <div class="acts">${payers.map(x=>`<button class="act ${r.payer===x?"on":""}" type="button" data-payer="${esc(x)}">${esc(x==="Brigitte Mulholland"?"Brigitte":x)}</button>`).join("")}</div></div>`).join("")
+      + (p!=="Not tagged"&&picked.length?`<div class="adder"><a class="pbtn" style="text-decoration:none" href="${esc(href)}" target="_blank" rel="noopener">Build claim with Claude · ${picked.length} · ${money(total)}</a><button class="act" type="button" data-rbclaimed="${esc(p)}">Mark these claimed</button></div>`:"");
+  }).join("")+`<div class="note">Build claim opens Claude with your NYFA claim skill: it finds every receipt in Gmail, makes one PDF packet, drafts the Zoho invoice to that payer and files it in Drive. It works for NYFA, Brigitte or anyone. Untick anything to leave it out.</div>`;
 }
 function renderOwed(){
   const ow=document.getElementById("owed"); let h="";
@@ -1312,6 +1326,9 @@ document.addEventListener("click", e=>{
   const pn=e.target.closest("[data-pin]"); if(pn){ const id=pn.closest("[data-opp]").dataset.opp, cur=S.pipeline[id]||{};
     dbWrite("pipeline/"+id,{stage:cur.stage||"prospect",pin:!cur.pin,ts:Date.now()},"pin",true).then(ok=>ok&&toast(cur.pin?"Unpinned":"Pinned: must apply this year")); return; }
   if(ivClick(e)) return;
+  if(e.target.id==="go-reimb"){ document.querySelector('#money-tabs [data-tab="reimb"]').click(); document.getElementById("money-tabs").scrollIntoView({behavior:"smooth"}); return; }
+  const rbc=e.target.closest("[data-rbclaimed]"); if(rbc){ const p=rbc.dataset.rbclaimed, ids=S.reimb.filter(r=>r.status!=="paid"&&r.status!=="claimed"&&(r.payer||"Not tagged")===p&&RB.sel[r.id]!==false);
+    (async()=>{ for(const r of ids){ await dbWrite("reimb/"+r.id,{status:"claimed",claimedAt:Date.now()},r.title,true); } toast("Marked "+ids.length+" claimed"); })(); return; }
   const chb=e.target.closest("[data-chfile],[data-chrefund],[data-chper],[data-chpark],[data-chunpark],[data-chforce],[data-chinv],[data-chinvgo],[data-chundo],[data-chautoundo],[data-chtog],[data-chreimb],[data-charea],#ch-bulk"); if(chb){ const ds=chb.dataset;
     if(chb.id==="ch-bulk") chBulk(); else if(ds.chtog){ CH.open[ds.chtog]=!CH.open[ds.chtog]; renderCharges(); }
     else if(ds.chfile) chFile(ds.chfile); else if(ds.chrefund){ CH.refund[ds.chrefund]=!CH.refund[ds.chrefund]; renderCharges(); }
@@ -1328,7 +1345,7 @@ document.addEventListener("click", e=>{
     if(d) navigator.clipboard.writeText((d.subject?"Subject: "+d.subject+"\n\n":"")+d.body).then(()=>toast("Copied")).catch(()=>toast("Select the text to copy it")); return; }
   const p=e.target.closest(".person"); if(p&&!e.target.closest("a")) p.classList.toggle("open");
 });
-document.addEventListener("change", e=>{ if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); }
+document.addEventListener("change", e=>{ if(e.target.dataset&&e.target.dataset.rbsel){ RB.sel[e.target.dataset.rbsel]=e.target.checked; renderReimb(); return; } if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); }
 });
 document.addEventListener("input", e=>{ if(ivInput(e)) return; if(e.target.id==="ch-q"){ CH.q=e.target.value; const pos=e.target.selectionStart; renderCharges(); const n=document.getElementById("ch-q"); n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } });
 document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("person")){ e.preventDefault(); e.target.classList.toggle("open"); }});
