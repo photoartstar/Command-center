@@ -26,7 +26,7 @@ Keep a list of sources that failed. A failure in one source never stops the othe
 - if no deadline, `surface` = 4 days after the request arrived;
 - id `gm-<threadId>`, `src` = the thread's viewUrl, label "Gmail".
 Also scan for "circle back", "check back", "reach out again", "in early December" and similar in mail Sean sent: make a `circleback` item with `surface` set to the start of that window, id `cb-<threadId>`.
-A second Gmail account is part of the brief but is not reachable through the connector today. Until Sean decides how to connect it, record "Gmail (second account)" in `failed`.
+The second account is Sean's NYU mail (sf130@nyu.edu). It is read through the Gmail web interface in his browser, not through a connector, so this cloud scan does not read it. The separate NYU mail pass below covers it. Do not report it as failed.
 
 **Google Calendar.** List events from today through 14 days ahead on the primary calendar and on sf130@nyu.edu. Make `event` items only for things that need preparation or a decision (a talk, a meeting with an external guest, a deadline-type event), not routine classes. `due` = event date, id `cal-<eventId>`. NYU teaching events go to area `teaching`.
 
@@ -63,6 +63,14 @@ For each QAM person in today's email or Granola meetings: find the contact (by E
 ## 6. Report
 
 Two or three lines: how many items written per area, what failed. Then, because this touches QAM, end with a block that starts with the exact words SESSION LOG, under 150 words: today's date, DECISIONS, SENT ("Nothing sent"), NEXT with owner and date.
+
+## NYU mail pass (separate task, runs on Sean's Mac)
+
+The NYU account is read in the browser, so this part is its own scheduled task bound to Sean's Mac (Claude in Chrome), twice a day on weekdays, for example `CRON_TZ=America/New_York 23 8,15 * * 1-5`. It skips any run while the Mac is off. Prompt:
+
+> Read Sean's NYU mail (sf130@nyu.edu) in Chrome: open mail.google.com, find the tab or account index whose page title shows sf130@nyu.edu (verify the title before trusting an index), and search `in:inbox newer_than:10d`. Gmail is a heavy page: re-read until the message list renders. Read only. Never send, reply, draft, archive, label or delete. Apply the same request, deadline and circle-back rules as the Command Center scan, with area `teaching` unless the thread is clearly QAM or practice. Write items with ids `nyu-<thread id from the URL>` to the Command Center store with ArtifactData, skipping any id whose `state` is done or wrong. Close every tab you opened. Then update `meta/status` by adding "NYU mail" to `failed` if the account could not be read, or removing it if it could. End with a SESSION LOG block if anything touched QAM.
+
+A cloud-only alternative, if Sean ever wants one: a filter in the NYU account that auto-forwards only mail from chosen senders to sean@seanfader.com. He declined general forwarding before, so this stays his call.
 
 ## Store layout
 
