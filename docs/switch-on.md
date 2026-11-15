@@ -55,6 +55,7 @@ Sean said "fire up the scans" on Nov 15. Created, then PAUSED because tasks crea
 Their prompts read the instructions from Drive (Claude HQ > memory > context): command-center-scan.md `1Szeos3kqOgRnFAXOOXQ1xuLsC-favpUJ`, command-center-qam-social.md `1IjByJIQqgpc-BbDatsldQX_4oTE0wk5h`, command-center-people-wiki.md `1pXV0oFei_6KQgKt2IQJs2SoqxDHE6tzF`. Keep these in sync with `scans/`.
 To finish: Sean adds connectors (Gmail, Google Calendar, Google Drive, Google Docs, Google Sheets, Airtable, Zoho Books, Granola, Claude Code Remote) to each task in claude.ai and turns it on; then set `meta/config` = `{live: true, scanTriggerId: "trig_01YFxWSqykyUZrhVbiru1pqS", refreshTriggerId: "trig_017uzRrntWmguaaJa5hDP7SS"}`.
 The first scan was run by hand from the build session on Nov 15.
+**Update, Nov 15 evening:** Sean added connectors to all three in claude.ai and ran each once. All three are now ON and `meta/config` is live (scanTriggerId = morning, refreshTriggerId = fast). Still off until the Mac is back: NYU mail pass, weekly advisor prompt, CV watch prompt.
 
 ## 3. Switch-on steps (in a cloud session)
 
