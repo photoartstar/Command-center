@@ -12,5 +12,5 @@ Same as round 2 (`docs/instructions-round-2.md`) for On Deck, QAM, People wiki, 
   - Owed to you: open invoices (client, amount, sent, days outstanding, overdue), unpaid reimbursements by payer with totals, expected but not invoiced income with Make invoice, a drafted follow-up at 30 days.
   - Invoice: pick an existing Zoho client first, New client only if not found, several line items, preview, draft only.
   - Bills: 3 days before due, late-fee warnings. Tiles stay. Drop PSLF.
-  - OPEN: Zoho income account names.
+  - Income accounts (Nov 15): Teaching Income, Speaking Fees & Honoraria, Freelance Income, Art Sales, Reimbursements, General Income. No Grants & Fellowships account for now (Sean).
 - Other: Sean adds a new client and sends an invoice today. Meeting Nov 16, 1pm with Scott Drevnig and Rose.
