@@ -38,6 +38,7 @@ Round 2 (later Nov 15): see `docs/instructions-round-2.md`. Blockers found while
 - **Absence email templates:** location unknown; the attendance step needs them.
 - **Kevin's tracker vs Sean's records** disagree on Heritage Alliance (Kevin: declined; Sean: submitted), Ford Good Neighbor (Kevin: awarded; Sean: 2028 prospect) and Knight (Kevin: "closed, not a fit"; Sean: warm, stalled). Possible duplicates: NYU Arts and Humanities Exploration vs Sean's NYU records; two NYC Cultural Affairs records. A second Couch gift (Sep 3 2026, donor-advised fund, amount unknown).
 - **Fast vs morning scans:** create two tasks; write the fast one's id into `meta/config.refreshTriggerId`.
+- **People backfill phase 1 (Nov 15):** 9 records split into 19 people, 106 created, about 30 updated. Gmail done back to 2026-07-24 (`meta/backfill.oldest`). Granola's free plan only shows the last 30 days, so 6 years of meeting history needs a paid Granola plan. Sam and Maureen should check Nicole Santamaria's Notes (may have been overwritten) and Carl Wilson's Next step.
 - **Maureen's Sunday review email** is the one email any task sends. Confirm with Sean before creating that task.
 
 Still open:
