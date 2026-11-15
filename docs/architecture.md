@@ -24,8 +24,18 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `goals/<id>` | My Practice Big Goals | practice pass |
 | `cv/<id>` | CV watch suggestions | CV watch (proposes), page (decides) |
 | `briefs/<id>` | Night-before meeting briefings | scan |
-| `meta/config` | `{live, scanTriggerId}`, the on switch | Claude at switch-on |
+| `meta/config` | `{live, scanTriggerId, refreshTriggerId}`, the on switch (Refresh fires `refreshTriggerId`, the fast scan) | Claude at switch-on |
 | `meta/status` | `{lastScan (epoch ms), failed: [source names]}` | every scan |
+| `thursday/<id>` | For Thursday items `{meeting, text, done, inAgenda}` | page, morning scan |
+| `opps/<slug>` | Practice and job opportunities from the funding feed | morning scan |
+| `pipeline/<slug>` | Sean's stage and pin per opportunity | page only |
+| `waiting/<threadId>` | Waiting on people `{who, what, sent, url, area, kind}` | fast scan |
+| `interfolio/<id>` | Interfolio log suggestions | morning scan proposes, page decides |
+| `classes/<id>`, `attendance/<date>-<class>` | Rosters, absences, drafted emails | scan, page |
+| `reimb/<expenseId>` | Expenses to claim, tagged by payer | morning scan, page tags |
+| `meta/nyu`, `meta/teaching` | NYU terms and dates, next class | morning scan |
+
+Version 3 of the page (Nov 15) also reads Zoho Books live (bank and card balances, unpaid invoices, items) and can create a customer plus a DRAFT invoice. "Tell Claude" uses the page's `sample` capability to file a typed or dictated note; when that is unavailable it saves the note with `needsFiling: true` for the next scan.
 
 ### `items/<id>`
 

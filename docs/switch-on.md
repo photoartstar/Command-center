@@ -33,6 +33,13 @@ Answered:
 - AR launch: fully finalized by Dec 1, likely sooner. Timeline shows Dec 1 as a target (dashed).
 - Morning brief: dropped (paused); On Deck is the replacement. Weekly advisor: keep, repointed.
 
+Round 2 (later Nov 15): see `docs/instructions-round-2.md`. Blockers found while building it:
+- **Running agenda doc** (`1lqzyGEjkrBqdE6-4OO6KpLR2JECcHQiM2VhIeAt6x6c`, Sam's): the connectors get "permission denied". Sam needs to give sean@seanfader.com edit access (or Sean opens it once from that account) before For Thursday items can be written into it.
+- **Absence email templates:** location unknown; the attendance step needs them.
+- **Kevin's tracker vs Sean's records** disagree on Heritage Alliance (Kevin: declined; Sean: submitted), Ford Good Neighbor (Kevin: awarded; Sean: 2028 prospect) and Knight (Kevin: "closed, not a fit"; Sean: warm, stalled). Possible duplicates: NYU Arts and Humanities Exploration vs Sean's NYU records; two NYC Cultural Affairs records. A second Couch gift (Sep 3 2026, donor-advised fund, amount unknown).
+- **Fast vs morning scans:** create two tasks; write the fast one's id into `meta/config.refreshTriggerId`.
+- **Maureen's Sunday review email** is the one email any task sends. Confirm with Sean before creating that task.
+
 Still open:
 - **Big Goals moves.** The first practice pass fills the places and introducers from the Art Practice Master and his contacts. Sean should review them once.
 - **Cv watch** probably has the same Mac binding as the advisor (it carries local folders). Its new prompt may also need approval from a conversation linked to the Mac.
