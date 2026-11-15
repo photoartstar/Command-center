@@ -33,7 +33,8 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `interfolio/<id>` | Interfolio log suggestions | morning scan proposes, page decides |
 | `classes/<id>`, `attendance/<date>-<class>` | Rosters, absences, drafted emails | scan, page |
 | `reimb/<expenseId>` | Expenses to claim, tagged by payer | morning scan, page tags |
-| `meta/nyu`, `meta/teaching` | NYU terms and dates, next class | morning scan |
+| `meta/nyu`, `meta/teaching` | NYU terms and dates, next class, `week` (this week's plan per class) | morning scan |
+| `sort/<transactionId>` | Sean's category for a Zoho charge (Brigitte, NYFA, QAM, Practice, Teaching, Personal, Other business) | page |
 
 Version 3 of the page (Nov 15) also reads Zoho Books live (bank and card balances, unpaid invoices, items) and can create a customer plus a DRAFT invoice. "Tell Claude" uses the page's `sample` capability to file a typed or dictated note; when that is unavailable it saves the note with `needsFiling: true` for the next scan.
 

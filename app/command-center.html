@@ -107,6 +107,15 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .mic.live{background:var(--hot);color:var(--surface);border-color:var(--hot)}
 .mic svg{width:18px;height:18px}
 .hint{font-size:12.5px;color:var(--qam);font-weight:600}
+.wkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:10px 14px 14px}
+.wkc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.wkh{display:flex;flex-direction:column;gap:2px}.wkh b{font-size:15px}.wkh .s{font-size:12.5px;color:var(--muted)}
+.wkt{font-weight:700;margin:8px 0 4px;color:var(--c-finn)}
+.wkc ul{margin:2px 0 6px;padding-left:18px;font-size:14px;line-height:1.45}
+.wkl{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:8px}
+.wkf{font-size:13px;margin-top:8px;padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--c-pink) 18%,var(--surface))}
+.wks{display:inline-block;margin-top:8px;font-size:13px;color:var(--c-azure)}
+.inn{color:var(--c-finn);font-weight:700;text-transform:uppercase;font-size:11px}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -214,6 +223,13 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .stg.on{background:var(--prac);border-color:var(--prac);color:var(--surface)}
 .pin{border:none;background:none;font-size:15px;opacity:.3;padding:0 4px 0 0;filter:grayscale(1)}
 .pin.on{opacity:1;filter:none}
+.fit{font:900 11px var(--f-mono);padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.fit.hi{background:var(--good-soft);color:var(--ink)}.fit.mid{background:var(--prac-soft);color:var(--ink)}.fit.lo{background:var(--sunk);color:var(--muted)}
+details.why{margin-top:4px;font-size:13px}
+details.why summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:12px}
+details.why div{margin-top:4px;white-space:pre-line;overflow-wrap:anywhere}
+details.why .mine{font-style:italic}
+.whyin{display:inline-flex;gap:6px;flex:1 1 220px}.whyin input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 10px;font-size:12.5px}
 
 .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;padding:10px 12px}
 .roster label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;cursor:pointer}
@@ -333,6 +349,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
       <div class="ahead"><div class="big" style="background:var(--teach);color:var(--c-finn)">✎</div><div><h1>Teaching and NYU</h1><p id="weeks-left">·</p></div></div>
       <div class="tl-wrap" id="nyu-scroll"><div class="tl short" id="nyu-tl"></div></div>
       <div class="tiles" id="t-tiles"></div>
+      <div class="panel" id="t-week"></div>
       <div class="tabs" role="tablist" id="teach-tabs">
         <button class="tab" role="tab" data-tab="attend" aria-selected="true">Attendance</button>
         <button class="tab" role="tab" data-tab="open" aria-selected="false">Open items</button>
@@ -351,11 +368,13 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
       <div class="tabs" role="tablist" id="money-tabs">
         <button class="tab" role="tab" data-tab="bills" aria-selected="true">Bills and to-dos</button>
         <button class="tab" role="tab" data-tab="owed" aria-selected="false">Owed to you</button>
+        <button class="tab" role="tab" data-tab="charges" aria-selected="false">Charges to sort</button>
         <button class="tab" role="tab" data-tab="reimb" aria-selected="false">Reimbursements</button>
         <button class="tab" role="tab" data-tab="invoice" aria-selected="false">New client and invoice</button>
       </div>
       <div class="sec" data-pane="bills"><div class="panel" id="money-items"></div></div>
       <div class="sec" data-pane="owed" hidden><div class="panel" id="owed"></div></div>
+      <div class="sec" data-pane="charges" hidden><div class="panel" id="charges"></div></div>
       <div class="sec" data-pane="reimb" hidden><div class="panel" id="reimb"></div></div>
       <div class="sec" data-pane="invoice" hidden>
         <div class="panel">
@@ -386,7 +405,7 @@ const BASE = "appPeWDhXHErd70GJ", ZORG = "919433010";
 const T = { contacts:"tblQeHggYxmEK7OEY", funding:"tbl6SYnqI4FSrW3LR", social:"tblIE99nz7g8OI68i" };
 const F = {
   c:{name:"fldFcGjsSHHQtS9VK",org:"fldfJMBk3gS88Gvjt",role:"fldKmv097UC6TSR7O",cat:"flddWf6GaEzeNkF3U",status:"fld9xKfCLEcRsQ91u",owner:"fldZMNz7EwhEe4tzB",last:"fld0eO3OF3k1o5pdR",next:"fldGONS97f5WocRbx",nextDate:"fldxerFrD0al9z3hl",lastConv:"fldol1ArolxdNMXOq",summary:"fld6M1MCRG2k9x5QT",introBy:"fld0fxXvblqbs2RJO",keywords:"fldKt9z1FVnh6D5l9",granola:"flddKI6VHlGrzduqG",threads:"fldUx2izEykWCdPiq",group:"fldUoQFfNDLYF6M5v",connected:"fldiFzu5A99LrckXM"},
-  f:{opp:"fld1M7RkZyWVd8HYb",funder:"fldXYiip0A4KsvzCL",stage:"fldpr7TFwLGax4M81",amount:"fld6SNZaaUzXzrl36",amountNote:"fldzKncPIUY74Gkz9",deadline:"fldLCmfhbrb0HUHN2",link:"fldxPAXD5fNEIjebL",received:"fld7X832Z3VPM8OH8",notes:"fldh7z1Lo493vM7RI",stalled:"fldusiTEf2ifpTlvU",via:"fldHjNEoVksX3qCLN",checkin:"fldBGCsxMQVExX2bu"},
+  f:{opp:"fld1M7RkZyWVd8HYb",funder:"fldXYiip0A4KsvzCL",stage:"fldpr7TFwLGax4M81",amount:"fld6SNZaaUzXzrl36",amountNote:"fldzKncPIUY74Gkz9",deadline:"fldLCmfhbrb0HUHN2",link:"fldxPAXD5fNEIjebL",received:"fld7X832Z3VPM8OH8",notes:"fldh7z1Lo493vM7RI",stalled:"fldusiTEf2ifpTlvU",via:"fldHjNEoVksX3qCLN",checkin:"fldBGCsxMQVExX2bu",fit:"fldPDijJBHkKK8euk",fitWhy:"fldNAmdKvjNAVJnPX",feedback:"fldIcWZXJ65DyiMlG"},
   s:{post:"fld68LAMAkL1dHzyO",date:"fldbEip1o5NYOZXMU",status:"fldQiyGlvX9tCXPJ5",format:"fldoqaL8uwMDXVmFl",caption:"fldBswNdGTTtaS0kk",why:"fldWcnDM0xL5vJUD7",folder:"fld7Wpj1cEfsyAavx",follow:"fldGYn5qc2ou055xT",tag:"fldBif8N9exojb3W4",collab:"fld8hmdVdFhkYLRRB",mok:"fldV2tYFcd6KFll6I",mnotes:"fldDVnmBCbyvCvkZE",seanOn:"fldPwgTpMQrOxjLUW"}
 };
 const AREAS = [
@@ -397,7 +416,7 @@ const AREAS = [
   {k:"personal",name:"Personal",glyph:"♥",color:"var(--pers)",fg:"var(--c-finn)"}
 ];
 const ROUTES = ["deck","qam","practice","teaching","money","personal"];
-const STAGES = [["prospect","Prospect"],["drafting","Drafting"],["submitted","Applied"],["won","Awarded"],["passed","Not a fit"],["later","Next year"]];
+const STAGES = [["prospect","Prospect"],["drafting","Drafting"],["submitted","Applied"],["won","Awarded"],["lost","Not awarded"],["passed","Not a fit"],["later","Next year"]];
 const NEW_CHAT = "https://claude.ai/new?q=";
 const SVG = {
   mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
@@ -429,7 +448,7 @@ const KIND_ICON = {launch:"λ",talk:SVG.mic,sign:SVG.pen,closing:SVG.flag,meetin
 const PERSONAL_GROUPS = [["birthday","Birthdays and gifts"],["family","Family"],["travel","Travel"],["home","Home"],["document","Documents and renewals"],["visa","French visa"],["health","Health"]];
 
 const S = { items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
-  interfolio:[], classes:[], attendance:[], reimb:[], status:null, config:null, nyu:null, teach:null,
+  interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, txns:null, status:null, config:null, nyu:null, teach:null,
   contacts:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
 let db=null, mcp=null, sample=null, dict=null;
 
@@ -635,12 +654,12 @@ function renderApps(){
   const el=document.getElementById("apps");
   if(connErr(el,"funding","Airtable","applications")) return;
   if(!S.funding){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
-  const closed=["Awarded","Declined","Committed"];
+  const closed=["Awarded","Declined","Committed","Not a fit","Next year"];
   const rows=S.funding.filter(r=>!closed.includes(selName(cell(r,F.f.stage))) && !cell(r,F.f.stalled))
     .sort((a,b)=>(cell(a,F.f.deadline)||"9999").localeCompare(cell(b,F.f.deadline)||"9999"));
   el.innerHTML = rows.length ? `<div class="sub-h">${rows.length} open</div>`+rows.map(r=>{ const dl=cell(r,F.f.deadline), link=safeUrl(cell(r,F.f.link)), amt=cell(r,F.f.amount);
     return `<div class="row a-qam"><div class="ico">${SVG.grant}</div>
-      <div class="txt"><div class="t">${esc(cell(r,F.f.opp))}</div><div class="s">${esc(cell(r,F.f.funder)||"")} · ${esc(selName(cell(r,F.f.stage))||"Prospect")}${amt?" · "+money(amt):(cell(r,F.f.amountNote)?" · "+esc(cell(r,F.f.amountNote)):"")}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>`:""}</div></div>
+      <div class="txt"><div class="t">${esc(cell(r,F.f.opp))}${fitChip(cell(r,F.f.fit))}</div><div class="s">${esc(cell(r,F.f.funder)||"")} · ${esc(selName(cell(r,F.f.stage))||"Prospect")}${amt?" · "+money(amt):(cell(r,F.f.amountNote)?" · "+esc(cell(r,F.f.amountNote)):"")}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(cell(r,F.f.fitWhy),cell(r,F.f.feedback)?{note:cell(r,F.f.feedback)}:null)}</div>
       ${dl?`<span class="when ${whenClass(dl)}">${whenLabel(dl)}</span>`:`<span class="when">rolling</span>`}</div>`;}).join("")
     : `<div class="empty">No open QAM applications.</div>`;
 }
@@ -684,16 +703,19 @@ function renderGoals(){
     : `<div class="panel"><div class="empty">Goals load from the store.</div></div>`;
 }
 const stageOf = o => (S.pipeline[o.id]||{}).stage||"prospect";
+let fit7=false; try{ fit7=localStorage.getItem("cc-fit7")==="1"; }catch(_){}
+function fitChip(f){ if(f==null||f==="") return ""; const n=+f; if(!n) return ""; return `<span class="fit ${n>=8?"hi":n>=5?"mid":"lo"}" title="Fit score">${n}/10</span>`; }
+function whyHTML(note, why){ const mine=why&&(why.note||(why.tags||[]).join(", ")); if(!note&&!mine) return ""; return `<details class="why"><summary>Why</summary>${note?`<div>${esc(note)}</div>`:""}${mine?`<div class="mine">You: ${esc(mine)}</div>`:""}</details>`; }
 function oppRow(o){
   const st=stageOf(o), pin=(S.pipeline[o.id]||{}).pin;
   const facts=[o.funder,o.amount,o.deadline?("deadline "+o.deadline):null,o.url].filter(Boolean).join(" · ");
   const apply=NEW_CHAT+encodeURIComponent(`Apply: ${o.title}\n\n${facts}\n\n${o.note||""}`);
   return `<div class="row a-practice" data-opp="${esc(o.id)}"><div class="ico">${o.type==="job"?SVG.job:SVG.grant}</div>
-    <div class="txt"><div class="t"><button class="pin ${pin?"on":""}" type="button" data-pin="1" aria-label="Must apply this year" title="Must apply this year">📌</button>${esc(o.title)}</div>
-      <div class="s">${esc(o.funder||"")}${o.amount?" · "+esc(o.amount):""}${safeUrl(o.url)?` · <a href="${esc(o.url)}" target="_blank" rel="noopener">open ↗</a>`:""}</div></div>
+    <div class="txt"><div class="t"><button class="pin ${pin?"on":""}" type="button" data-pin="1" aria-label="Must apply this year" title="Must apply this year">📌</button>${esc(o.title)}${fitChip(o.fit)}</div>
+      <div class="s">${esc(o.funder||"")}${o.amount?" · "+esc(o.amount):""}${safeUrl(o.url)?` · <a href="${esc(o.url)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(o.note,(S.pipeline[o.id]||{}).why)}</div>
     ${o.deadline?`<span class="when ${whenClass(o.deadline)}">${whenLabel(o.deadline)}</span>`:`<span class="when">rolling</span>`}
     <div class="acts"><span class="stages">${STAGES.map(([k,l])=>`<button type="button" class="stg ${st===k?"on":""}" data-stage="${k}">${l}</button>`).join("")}</span>
-      ${["prospect","drafting"].includes(st)?`<a class="act go" href="${esc(apply)}" target="_blank" rel="noopener">Apply</a>`:""}</div></div>`;
+      ${["prospect","drafting"].includes(st)?`<a class="act go" href="${esc(apply)}" target="_blank" rel="noopener">Apply</a>`:""}${st==="passed"&&!((S.pipeline[o.id]||{}).why||{}).note?`<span class="whyin"><input type="text" data-whyin="${esc(o.id)}" placeholder="Why not a fit? (teaches future scans)" aria-label="Why not a fit"><button class="act" type="button" data-whysave="${esc(o.id)}">Save</button></span>`:""}</div></div>`;
 }
 function renderPipeline(){
   const sortP=(a,b)=>(!!(S.pipeline[b.id]||{}).pin - !!(S.pipeline[a.id]||{}).pin)||(a.deadline||"9999").localeCompare(b.deadline||"9999");
@@ -706,9 +728,10 @@ function renderPipeline(){
       +(applied.length?`<div class="sub-h">Applied, waiting · ${applied.length}</div>`+applied.map(oppRow).join(""):"")
       +(rest.length?`<div class="note">${rest.filter(o=>stageOf(o)==="won").length} awarded, ${rest.filter(o=>stageOf(o)==="passed").length} not a fit, ${rest.filter(o=>stageOf(o)==="later").length} next year.</div>`:"");
   };
-  const own=S.opps.filter(o=>o.track!==2);
-  document.getElementById("p-pipe").innerHTML=build(own.filter(o=>o.type!=="job"),"No practice opportunities yet. They arrive with the morning funding scan.");
-  document.getElementById("p-jobs").innerHTML=build(own.filter(o=>o.type==="job"),"No jobs pass the filter yet: major institutions, big roles, the listed cities.");
+  const own=S.opps.filter(o=>o.track!==2).filter(o=>!fit7||(+o.fit||0)>=7||(S.pipeline[o.id]||{}).pin||stageOf(o)!=="prospect");
+  const tog=`<div class="adder" style="padding-bottom:0"><button type="button" class="act ${fit7?"on":""}" data-fit7="1">Fit 7+ only</button><span class="s">${fit7?"Strong fits, pins and anything you have acted on.":"Showing everything. Tap Why on any row for the reasoning."}</span></div>`;
+  document.getElementById("p-pipe").innerHTML=tog+build(own.filter(o=>o.type!=="job"),"No practice opportunities yet. They arrive with the morning funding scan.");
+  document.getElementById("p-jobs").innerHTML=tog+build(own.filter(o=>o.type==="job"),"No jobs pass the filter yet: major institutions, big roles, the listed cities.");
 }
 function renderPracticeLists(){
   const open=openItems("practice");
@@ -756,7 +779,21 @@ function renderTeaching(){
     <div class="tile"><span class="k">Next NYU date</span><span class="v" style="font-size:19px">${esc(nextMark?whenLabel(nextMark.date):"·")}</span><span class="x">${esc(nextMark?nextMark.label:"")}</span></div>`;
   listInto(document.getElementById("teaching-items"), open.filter(i=>i.course!=="memorials"), "Nothing open for teaching.");
   listInto(document.getElementById("memorials-items"), open.filter(i=>i.course==="memorials"), "Nothing open for the Memorials class yet. What lives here is still to decide.");
-  renderAttendance(); renderInterfolio();
+  renderWeek(t); renderAttendance(); renderInterfolio();
+}
+function renderWeek(t){
+  const el=document.getElementById("t-week"), wk=t&&t.week, cls=(wk&&wk.classes)||[];
+  const fresh=wk && daysUntil(wk.start)>-7;
+  if(!cls.length||!fresh){ el.innerHTML=`<div class="sub-h">This week in class</div><div class="empty">${SVG.calm}<span>The plan for each class arrives with the Monday morning pass.</span></div>`; return; }
+  el.innerHTML=`<div class="sub-h">This week in class</div><div class="wkgrid">`+cls.map(c=>`<div class="wkc">
+    <div class="wkh"><b>${esc(c.name)}</b><span class="s">${esc(whenLabel(c.date))}${c.time?" · "+esc(c.time):""}${c.room?" · "+esc(c.room):""}${c.week?" · "+esc(c.week):""}</span></div>
+    <div class="wkt">${esc(c.title||"")}</div>
+    <ul>${(c.plan||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    ${(c.due||[]).length?`<div class="wkl">Due from students</div><ul>${c.due.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+    ${(c.homework||[]).length?`<div class="wkl">Homework you assign</div><ul>${c.homework.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+    ${c.flag?`<div class="wkf">${esc(c.flag)}</div>`:""}
+    ${c.src&&c.src.url?`<a class="wks" href="${esc(c.src.url)}" target="_blank" rel="noopener">${esc(c.src.label||"Source")}</a>`:""}
+  </div>`).join("")+`</div>`;
 }
 let attClass=null;
 function renderAttendance(){
@@ -805,6 +842,7 @@ function renderMoney(){
       ow.innerHTML = S.invoices.length ? `<div class="sub-h">${S.invoices.length} open · ${money(sum)}</div>`+S.invoices.slice().sort((a,b)=>(a.due_date||"").localeCompare(b.due_date||"")).map(i=>`<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(i.customer_name)}</div><div class="s">${esc(i.invoice_number||"")} · ${money(+i.balance||0)} · ${esc(i.status||"")}</div></div><span class="when ${whenClass(i.due_date)}">${esc(whenLabel(i.due_date))}</span></div>`).join("")
         : `<div class="empty">${SVG.calm}<span>No one owes you money right now.</span></div>`; }
   }
+  renderCharges();
   const re=document.getElementById("reimb"), payers=["NYFA","Brigitte Mulholland","Other"], open=S.reimb.filter(r=>r.status!=="paid");
   re.innerHTML = open.length ? open.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(r=>`<div class="row a-money" data-reimb="${esc(r.id)}"><div class="ico">${SVG.bill}</div>
       <div class="txt"><div class="t">${esc(r.title)}</div><div class="s">${esc(r.date||"")}${r.amount?" · "+money(r.amount):""}${r.payer?" · claim from "+esc(r.payer):" · not tagged"}</div></div><span></span>
@@ -816,6 +854,27 @@ function renderMoney(){
   else if(S.errors.zitems && sel.dataset.filled!=="1") sel.innerHTML=`<option value="">Zoho items unavailable</option>`;
 }
 
+const CAT=[["brigitte","Brigitte"],["nyfa","NYFA"],["qam","QAM"],["practice","Practice"],["teaching","Teaching"],["personal","Personal"],["business","Other business"]];
+let chShow="todo", chQ="";
+function renderCharges(){
+  const el=document.getElementById("charges");
+  if(S.errors.txns){ connErr(el,"txns","Zoho Books Banking","charges"); return; }
+  if(!S.txns){ el.innerHTML=`<div class="empty">Loading charges from Zoho…</div>`; return; }
+  const sorted=id=>S.sort[id], q=chQ.toLowerCase();
+  let rows=S.txns.filter(t=>chShow==="all"||(chShow==="todo"?!sorted(t.transaction_id):!!sorted(t.transaction_id)));
+  if(q) rows=rows.filter(t=>((t.payee||"")+" "+(t.description||"")+" "+(t.account_name||"")).toLowerCase().includes(q));
+  const left=S.txns.filter(t=>!sorted(t.transaction_id)).length;
+  const isIn=t=>(t.account_type==="bank")===(t.debit_or_credit==="debit");
+  el.innerHTML=`<div class="adder"><input type="search" id="ch-q" placeholder="Search payee or card" value="${esc(chQ)}" aria-label="Search charges">
+      <select id="ch-show" aria-label="Show"><option value="todo" ${chShow==="todo"?"selected":""}>To sort (${left})</option><option value="done" ${chShow==="done"?"selected":""}>Sorted</option><option value="all" ${chShow==="all"?"selected":""}>All</option></select></div>`
+    + (rows.length? rows.slice(0,150).map(t=>{ const id=t.transaction_id, cur=sorted(id), inn=isIn(t);
+      return `<div class="row a-money" data-txn="${esc(id)}"><div class="ico">${SVG.bill}</div>
+      <div class="txt"><div class="t">${esc(t.payee||t.description||"Charge")} · ${inn?"<span class=\"inn\">in</span> ":""}${money(+t.amount||0)}</div><div class="s">${esc(t.date||"")} · ${esc(String(t.account_name||"").replace(/®/g,""))}${t.payee&&t.description?" · "+esc(t.description):""}</div></div><span></span>
+      <div class="acts">${CAT.map(([k,l])=>`<button class="act ${cur&&cur.cat===k?"on":""}" type="button" data-cat="${k}">${esc(l)}</button>`).join("")}</div></div>`; }).join("")
+      + (rows.length>150?`<div class="note">Showing 150 of ${rows.length}. Search to narrow.</div>`:"")
+    : `<div class="empty">${SVG.calm}<span>${chShow==="todo"?"Everything is sorted.":"Nothing here yet."}</span></div>`)
+    + `<div class="note">Brigitte and NYFA also add the charge to Reimbursements. Sorting lives here; Claude moves it into Zoho categories during the weekly books review, so nothing in Zoho changes from this page.</div>`;
+}
 function renderPersonal(){
   const open=openItems("personal"), el=document.getElementById("personal-items");
   if(!open.length){ el.innerHTML=`<div class="empty">${SVG.calm}<span>Nothing open.</span></div>`; return; }
@@ -870,7 +929,7 @@ async function pushUndo(entry){
   await db.collection("undo").doc().set({...entry, ts:Date.now()});
   for(const u of S.undo.slice(29)){ try{ await db.doc("undo/"+u.id).delete(); }catch(_){} }
 }
-function currentDoc(col,id){ return ({state:S.state[id],pipeline:S.pipeline[id]})[col] || (S[col]&&Array.isArray(S[col])?S[col].find(x=>x.id===id):null); }
+function currentDoc(col,id){ return ({state:S.state[id],pipeline:S.pipeline[id],sort:S.sort[id]})[col] || (S[col]&&Array.isArray(S[col])?S[col].find(x=>x.id===id):null); }
 async function dbWrite(path, data, label, merge){
   if(!db||busy) return false; busy=true;
   const [col,id]=path.split("/"), prev=clean(currentDoc(col,id));
@@ -922,8 +981,15 @@ document.addEventListener("click", e=>{
     dbWrite("thursday/"+id,{done:!x.done},x.text,true); return; }
   const st=e.target.closest("[data-stage]"); if(st){ const id=st.closest("[data-opp]").dataset.opp, o=S.opps.find(x=>x.id===id);
     dbWrite("pipeline/"+id,{stage:st.dataset.stage,ts:Date.now(),title:o?o.title:""},o?o.title:"",true).then(ok=>ok&&toast("Moved to "+st.textContent)); return; }
+  const ws=e.target.closest("[data-whysave]"); if(ws){ const id=ws.dataset.whysave, inp=document.querySelector(`[data-whyin="${CSS.escape(id)}"]`), v=inp&&inp.value.trim(); if(!v) return; dbWrite("pipeline/"+id,{why:{tags:[],note:v},ts:Date.now()},"reason",true).then(ok=>ok&&toast("Saved. Future scans will skip things like this.")); return; }
+  const f7=e.target.closest("[data-fit7]"); if(f7){ fit7=!fit7; try{ localStorage.setItem("cc-fit7",fit7?"1":"0"); }catch(_){} renderPipeline(); return; }
   const pn=e.target.closest("[data-pin]"); if(pn){ const id=pn.closest("[data-opp]").dataset.opp, cur=S.pipeline[id]||{};
     dbWrite("pipeline/"+id,{stage:cur.stage||"prospect",pin:!cur.pin,ts:Date.now()},"pin",true).then(ok=>ok&&toast(cur.pin?"Unpinned":"Pinned: must apply this year")); return; }
+  const ct=e.target.closest("[data-cat]"); if(ct){ const id=ct.closest("[data-txn]").dataset.txn, t=(S.txns||[]).find(x=>x.transaction_id===id), k=ct.dataset.cat;
+    if(!t) return; const title=t.payee||t.description||"Charge", base={title,amount:+t.amount||0,date:t.date||null,account:t.account_name||""};
+    dbWrite("sort/"+id,{...base,cat:k,ts:Date.now()},title,false).then(ok=>{ if(!ok) return;
+      if(k==="brigitte"||k==="nyfa") dbWrite("reimb/"+id,{...base,payer:k==="brigitte"?"Brigitte Mulholland":"NYFA",status:"open",from:"charges",taggedAt:Date.now()},title,true);
+      toast("Sorted: "+CAT.find(c=>c[0]===k)[1]); }); return; }
   const py=e.target.closest("[data-payer]"); if(py){ const id=py.closest("[data-reimb]").dataset.reimb, r=S.reimb.find(x=>x.id===id);
     dbWrite("reimb/"+id,{payer:py.dataset.payer,taggedAt:Date.now()},r?r.title:"",true).then(ok=>ok&&toast("Tagged "+py.dataset.payer)); return; }
   if(e.target.id==="att-go") return attendanceGo();
@@ -931,7 +997,9 @@ document.addEventListener("click", e=>{
     if(d) navigator.clipboard.writeText((d.subject?"Subject: "+d.subject+"\n\n":"")+d.body).then(()=>toast("Copied")).catch(()=>toast("Select the text to copy it")); return; }
   const p=e.target.closest(".person"); if(p&&!e.target.closest("a")) p.classList.toggle("open");
 });
-document.addEventListener("change", e=>{ if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); } });
+document.addEventListener("change", e=>{ if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); }
+  if(e.target.id==="ch-show"){ chShow=e.target.value; renderCharges(); } });
+document.addEventListener("input", e=>{ if(e.target.id==="ch-q"){ chQ=e.target.value; const pos=e.target.selectionStart; renderCharges(); const n=document.getElementById("ch-q"); n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } });
 document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("person")){ e.preventDefault(); e.target.classList.toggle("open"); }});
 document.getElementById("undo").addEventListener("click", undoLast);
 document.getElementById("lead-q").addEventListener("input", renderLeads);
@@ -1023,7 +1091,23 @@ async function loadZoho(fresh){
     mcp.callTool("Zoho Books","list_invoices",{query_params:{organization_id:ZORG,status:"unpaid",per_page:100}},opts).then(r=>{S.invoices=unwrap(r).invoices||[]; delete S.errors.invoices;}).catch(e=>{S.errors.invoices=e||{code:"upstream_error"};}),
     mcp.callTool("Zoho Books","list_items",{query_params:{organization_id:ZORG,per_page:100}},opts).then(r=>{S.zitems=(unwrap(r).items||[]).filter(i=>i.can_be_sold!==false); delete S.errors.zitems;}).catch(e=>{S.errors.zitems=e||{code:"upstream_error"};})
   ]);
+  await loadTxns(opts);
   renderMoney();
+}
+async function loadTxns(opts){
+  const accts=(S.bank||[]).filter(a=>(+a.uncategorized_transactions||0)>0);
+  if(!accts.length){ if(S.bank) S.txns=[]; return; }
+  try{
+    const out=[];
+    for(const a of accts){
+      for(let page=1; page<=5; page++){
+        const r=await mcp.callTool("Zoho Books Banking","ZohoBooks_list_bank_transactions",{query_params:{organization_id:ZORG,account_id:a.account_id,filter_by:"Status.Uncategorized",sort_column:"date",per_page:200,page}},opts);
+        const d=(r.payload&&(r.payload.data||r.payload))||{}; out.push(...(d.banktransactions||[]));
+        if(!(d.page_context&&d.page_context.has_more_page)) break;
+      }
+    }
+    S.txns=out.sort((x,y)=>(y.date||"").localeCompare(x.date||"")); delete S.errors.txns;
+  }catch(e){ S.errors.txns=e||{code:"upstream_error"}; }
 }
 async function refresh(){
   const btn=document.getElementById("refresh"); btn.classList.add("spin"); btn.disabled=true;
@@ -1041,7 +1125,7 @@ function sub(path,key,opts={}){
   const timer=setTimeout(()=>{ if(!S.loaded[key]) document.getElementById("synctext").textContent="The store isn't answering yet. Data may be missing."; },10000);
   q.onSnapshot(snap=>{
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(key==="state"||key==="pipeline"){ S[key]={}; rows.forEach(r=>S[key][r.id]=r); } else S[key]=rows;
+    if(key==="state"||key==="pipeline"||key==="sort"){ S[key]={}; rows.forEach(r=>S[key][r.id]=r); } else S[key]=rows;
     if(!snap.metadata.fromCache){ S.loaded[key]=true; clearTimeout(timer); }
     scheduleRender();
   }, ()=>{ clearTimeout(timer); S.loaded[key]=true; document.getElementById("synctext").textContent="Lost the connection to the store. Reload to retry."; });
@@ -1056,6 +1140,7 @@ function subDoc(path,key){ db.doc(path).onSnapshot(d=>{ S[key]=d.exists?d.data()
   [db,mcp,sample,dict]=await Promise.all(["db","mcp","sample","dictation"].map(n=>c.use(n).catch(()=>null)));
   if(db){
     ["items","state","timeline","goals","cv","briefs","thursday","opps","pipeline","waiting","interfolio","classes","attendance","reimb"].forEach(k=>sub(k,k));
+    sub("sort","sort");
     sub("undo","undo",{order:"ts",dir:"desc",limit:40});
     subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach");
   }
