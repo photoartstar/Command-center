@@ -154,6 +154,14 @@ details.fold{border-top:1px solid var(--line)}details.fold>summary{font:500 11px
 .ivprev{padding:10px 14px}.ivl{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}.ivl.tot{border-bottom:0;font-weight:700}
 pre.fu{white-space:pre-wrap;font:inherit;font-size:13px;margin:6px 0}
 @media (max-width:520px){.bk2guess,.bk2tags{margin-left:0}}
+.bk2b.reimb{background:var(--c-pink);color:var(--c-finn);border-color:transparent}
+.bk2tagged{font-size:12px;font-weight:700;color:var(--c-finn);padding:4px 8px;border-radius:999px;background:color-mix(in srgb,var(--c-pink) 30%,var(--surface))}
+.pick{margin:8px 0 0 54px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.pickh{font-weight:700;font-size:13px;margin-bottom:6px}.pickrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.pickrow input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;flex:1 1 180px}
+.seg{display:inline-flex;gap:4px}.miss{color:var(--c-finn);background:color-mix(in srgb,var(--c-pink) 25%,transparent);padding:0 4px;border-radius:4px}
+.morebox{display:inline-flex;gap:6px;flex-wrap:wrap}.act.more{padding-left:10px;padding-right:10px}
+@media (max-width:520px){.pick{margin-left:0}}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -401,20 +409,20 @@ details.why .mine{font-style:italic}
     </section>
 
     <section class="view" data-route="money" hidden>
-      <div class="ahead"><div class="big" style="background:var(--money);color:var(--c-blush)">$</div><div><h1>Money</h1><p>On track means a positive bank balance and every card paid in full</p></div><button class="pbtn" type="button" id="go-reimb" style="margin-left:auto">Reimbursement</button></div>
+      <div class="ahead"><div class="big" style="background:var(--money);color:var(--c-blush)">$</div><div><h1>Money</h1><p>On track means a positive bank balance and every card statement paid on time</p></div><button class="pbtn" type="button" id="go-reimb" style="margin-left:auto">Reimbursement</button></div>
       <div class="tiles" id="m-tiles"></div>
       <div class="tabs" role="tablist" id="money-tabs">
         <button class="tab" role="tab" data-tab="sort" aria-selected="true">Sort</button>
+        <button class="tab" role="tab" data-tab="reimb" aria-selected="false">Reimbursements</button>
         <button class="tab" role="tab" data-tab="owed" aria-selected="false">Owed to you</button>
         <button class="tab" role="tab" data-tab="invoice" aria-selected="false">Invoice</button>
         <button class="tab" role="tab" data-tab="bills" aria-selected="false">Bills</button>
-        <button class="tab" role="tab" data-tab="reimb" aria-selected="false">Reimbursements</button>
       </div>
       <div class="sec" data-pane="sort"><div class="panel" id="charges"></div></div>
+      <div class="sec" data-pane="reimb" hidden><div class="panel" id="reimb"></div></div>
       <div class="sec" data-pane="owed" hidden><div class="panel" id="owed"></div></div>
       <div class="sec" data-pane="invoice" hidden><div class="panel" id="invoice"></div></div>
       <div class="sec" data-pane="bills" hidden><div class="panel" id="money-items"></div></div>
-      <div class="sec" data-pane="reimb" hidden><div class="panel" id="reimb"></div></div>
     </section>
 
     <section class="view" data-route="personal" hidden>
@@ -473,8 +481,8 @@ const KIND_ICON = {launch:"λ",talk:SVG.mic,sign:SVG.pen,closing:SVG.flag,meetin
 const PERSONAL_GROUPS = [["birthday","Birthdays and gifts"],["family","Family"],["travel","Travel"],["home","Home"],["document","Documents and renewals"],["visa","French visa"],["health","Health"]];
 
 const S = { items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
-  interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], coa:null, contacts:null, status:null, config:null, nyu:null, teach:null,
-  contacts:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
+  interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], claims:[], alltx:null, coa:null, zclients:null, status:null, config:null, nyu:null, teach:null, cards:null,
+  people:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
 let db=null, mcp=null, sample=null, dict=null;
 
 const pad = n => String(n).padStart(2,"0");
@@ -545,8 +553,8 @@ function rowHTML(it){
       <button class="act ok" data-do="done" type="button">${SVG.check}Done</button>
       <button class="act" data-do="snooze" type="button">${SVG.clock}Snooze</button>
       <span class="snz" hidden><button class="act" data-do="snz1" type="button">Tomorrow</button><button class="act" data-do="snz3" type="button">3 days</button><button class="act" data-do="snzThu" type="button">Thursday</button><button class="act" data-do="snzMon" type="button">Monday</button></span>
-      ${brief?`<a class="act go" href="${esc(brief)}" target="_blank" rel="noopener">Brief me</a>`:""}
-      <button class="act no" data-do="wrong" type="button">${SVG.x}Doesn't belong</button>
+      <button class="act more" data-do="more" type="button" aria-label="More actions">⋯</button>
+      <span class="morebox" hidden>${brief?`<a class="act go" href="${esc(brief)}" target="_blank" rel="noopener">Brief me</a>`:""}<button class="act no" data-do="wrong" type="button">${SVG.x}Doesn't belong</button></span>
     </div></div>`;
 }
 function listInto(el, items, emptyText){
@@ -579,7 +587,7 @@ function renderDeck(){
 }
 
 const TL_START = () => addDays(TODAY(),-7);
-const TL_END = () => new Date(2027,5,30,12);
+const TL_END = () => { const d=TODAY(); return new Date(d.getFullYear(),d.getMonth()+8,d.getDate(),12); };
 function renderTimeline(){
   const tl=document.getElementById("tl"), tray=document.getElementById("tl-tray");
   const start=TL_START(), end=TL_END(), span=end-start, pos = d => Math.max(0,Math.min(100,(d-start)/span*100));
@@ -636,23 +644,23 @@ function personHTML(r, byId, team){
 }
 function renderLeads(){
   const el=document.getElementById("leads");
-  if(connErr(el,"contacts","Airtable","leads")) return;
-  if(!S.contacts){ el.innerHTML=`<div class="empty">Loading people from Airtable…</div>`; return; }
-  const byId={}; S.contacts.forEach(r=>byId[r.id]=cell(r,F.c.name));
+  if(connErr(el,"people","Airtable","leads")) return;
+  if(!S.people){ el.innerHTML=`<div class="empty">Loading people from Airtable…</div>`; return; }
+  const byId={}; S.people.forEach(r=>byId[r.id]=cell(r,F.c.name));
   const q=(document.getElementById("lead-q").value||"").toLowerCase().trim();
-  let rows=S.contacts.filter(r=>!selName(cell(r,F.c.group)));
+  let rows=S.people.filter(r=>!selName(cell(r,F.c.group)));
   if(q) rows=rows.filter(r=>[F.c.name,F.c.org,F.c.keywords,F.c.summary,F.c.role].some(f=>String(selName(cell(r,f))||"").toLowerCase().includes(q)));
   rows.sort((a,b)=>(cell(a,F.c.nextDate)||"9999").localeCompare(cell(b,F.c.nextDate)||"9999"));
   el.innerHTML = rows.length ? `<div class="sub-h">${rows.length} people</div>`+rows.map(r=>personHTML(r,byId,false)).join("") : `<div class="empty">${q?"No one matches.":"No leads yet."}</div>`;
 }
 function renderTeam(){
   const el=document.getElementById("team");
-  if(connErr(el,"contacts","Airtable","the team")) return;
-  if(!S.contacts){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
-  const byId={}; S.contacts.forEach(r=>byId[r.id]=cell(r,F.c.name));
+  if(connErr(el,"people","Airtable","the team")) return;
+  if(!S.people){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
+  const byId={}; S.people.forEach(r=>byId[r.id]=cell(r,F.c.name));
   const groups=[["Core","Core team"],["Regular collaborator","Regular collaborators"],["Worked with once or twice","Worked with once or twice"],["Advisor (unofficial)","Advisors (unofficial)"]];
   el.innerHTML = groups.map(([g,label])=>{
-    const rows=S.contacts.filter(r=>selName(cell(r,F.c.group))===g).sort((a,b)=>(cell(a,F.c.name)||"").localeCompare(cell(b,F.c.name)||""));
+    const rows=S.people.filter(r=>selName(cell(r,F.c.group))===g).sort((a,b)=>(cell(a,F.c.name)||"").localeCompare(cell(b,F.c.name)||""));
     return `<div class="sub-h">${esc(label)} · ${rows.length}</div>`+(rows.length?rows.map(r=>personHTML(r,byId,true)).join(""):`<div class="empty">No one here yet.</div>`);
   }).join("")+`<div class="note">Future goal: a formal advisory board. Until then every advisor is unofficial.</div>`;
 }
@@ -718,7 +726,7 @@ function renderSocial(){
   const el=document.getElementById("social");
   if(connErr(el,"social","Airtable","posts")) return;
   if(!S.social){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
-  const horizon=ymd(addDays(TODAY(),7)), today=ymd(TODAY());
+  const horizon=ymd(addDays(TODAY(),14)), today=ymd(TODAY());
   const rows=S.social.filter(r=>{ const d=cell(r,F.s.date), st=selName(cell(r,F.s.status)); return st!=="Posted"&&st!=="Dropped"&&(!d||(d>=today&&d<=horizon)); })
     .sort((a,b)=>(cell(a,F.s.date)||"9999").localeCompare(cell(b,F.s.date)||"9999"));
   el.innerHTML = rows.length ? rows.map(r=>{
@@ -809,7 +817,7 @@ function renderTeaching(){
   const tl=document.getElementById("nyu-tl");
   if(!terms.length && !marks.length) tl.innerHTML=`<div class="empty">NYU dates load with the first teaching pass.</div>`;
   else{
-    const start=addDays(TODAY(),-14), end=new Date(2027,4,31,12), span=end-start, pos=d=>Math.max(0,Math.min(100,(d-start)/span*100));
+    const start=addDays(TODAY(),-14), end=TL_END(), span=end-start, pos=d=>Math.max(0,Math.min(100,(d-start)/span*100));
     let h='<div class="tl-axis"></div>';
     for(let m=new Date(start.getFullYear(),start.getMonth()+1,1,12); m<=end; m=new Date(m.getFullYear(),m.getMonth()+1,1,12)) h+=`<div class="tl-tick" style="left:${pos(m)}%"></div><div class="tl-month" style="left:${pos(m)}%">${MON[m.getMonth()]}</div>`;
     terms.forEach(t=>{ const a=pos(parse(t.start)), b=pos(parse(t.end)); if(b>a) h+=`<div class="tl-band" style="left:${a}%;width:${b-a}%"><span>${esc(t.name)}</span></div>`; });
@@ -847,16 +855,19 @@ function renderWeek(t){
   </div>`).join("")+`</div>`;
 }
 let attClass=null;
+const DOWN={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
+function classDays(c){ const raw=[].concat(c.days||c.day||[]); const out=raw.map(d=>typeof d==="number"?d:DOWN[String(d).slice(0,3).toLowerCase()]).filter(d=>d!==undefined); return out.length?out:[3]; }
+function lastMeeting(c,t){ const days=classDays(c); for(let i=0;i<7;i++){ const d=addDays(t,-i); if(days.includes(d.getDay())) return d; } return t; }
 function renderAttendance(){
   const el=document.getElementById("attend");
   if(!S.classes.length){ el.innerHTML=`<div class="empty">${SVG.people}<span>Class rosters load with the first teaching pass. Wednesday night or Thursday morning, tick who was absent and tap Go.</span></div>`; return; }
   const cls = S.classes.find(c=>c.id===attClass) || S.classes[0]; attClass=cls.id;
-  const t=TODAY(), lastWed=ymd(addDays(t,-((t.getDay()-3+7)%7)));
+  const t=TODAY(), lastWed=ymd(lastMeeting(cls,t));
   const docId=lastWed+"-"+cls.id, rec=S.attendance.find(a=>a.id===docId), absent=new Set(rec?rec.absent||[]:[]);
   el.innerHTML=`<div class="adder"><select id="att-class" aria-label="Class">${S.classes.map(c=>`<option value="${esc(c.id)}" ${c.id===cls.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select><span class="s">Class of ${esc(longDate(lastWed))}</span></div>
     <div class="roster">${(cls.roster||[]).map(n=>`<label><input type="checkbox" name="absent" value="${esc(n)}" ${absent.has(n)?"checked":""}>${esc(n)}</label>`).join("")}</div>
     <div class="adder"><button class="pbtn" type="button" id="att-go">Go</button><span class="s">${rec?(rec.status==="drafted"?"Drafts ready below.":"Sent to Claude. Drafts appear here."):"Tick who was absent."}</span></div>
-    ${(rec&&rec.drafts||[]).map((d,i)=>`<div class="draft"><b>${esc(d.student)}</b> · ${esc(d.tier||"")}<div class="s">${esc(d.subject||"")}</div><pre>${esc(d.body||"")}</pre><button class="act" type="button" data-copy="${i}">Copy</button></div>`).join("")}`;
+    ${(rec&&rec.drafts||[]).map((d,i)=>`<div class="draft"><b>${esc(d.student)}</b> · ${esc(d.tier||"")}<div class="s">${esc(d.subject||"")}</div><pre>${esc(d.body||"")}</pre>${d.gmail&&safeUrl(d.gmail)?`<a class="act go" href="${esc(d.gmail)}" target="_blank" rel="noopener">Open draft in Gmail</a>`:""}<button class="act" type="button" data-copy="${i}">Copy</button></div>`).join("")}`;
   el.dataset.doc=docId; el.dataset.date=lastWed;
 }
 function renderInterfolio(){
@@ -867,74 +878,6 @@ function renderInterfolio(){
     +`<div class="note">${ok.length} logged. The year-end list for Interfolio is built from these.</div>`;
 }
 
-function renderMoney(){
-  const tiles=document.getElementById("m-tiles");
-  if(S.errors.bank) connErr(tiles,"bank","Zoho Books","balances");
-  else if(!S.bank) tiles.innerHTML=`<div class="tile"><span class="k">Bank</span><span class="v">·</span><span class="x">Loading Zoho…</span></div>`;
-  else{
-    const banks=S.bank.filter(a=>a.account_type==="bank"), cards=S.bank.filter(a=>a.account_type==="credit_card");
-    const bankBal=banks.reduce((s,a)=>s+(+a.bank_balance||0),0);
-    const owed=cards.filter(a=>a.feeds_last_refresh_date && (+a.bank_balance||0)>0.005), nofeed=cards.filter(a=>!a.feeds_last_refresh_date);
-    const owedSum=owed.reduce((s,a)=>s+(+a.bank_balance||0),0), unc=S.bank.reduce((s,a)=>s+(+a.uncategorized_transactions||0),0);
-    const onTrack=bankBal>0 && owed.length===0;
-    tiles.innerHTML=`
-      <div class="tile"><span class="k">This month</span><span class="v ${onTrack?"ok":"bad"}">${onTrack?"On track":"Not yet"}</span><span class="x">${onTrack?"Bank positive, cards paid":"Pay the cards in full"}</span></div>
-      <div class="tile"><span class="k">Bank balance</span><span class="v ${bankBal>0?"ok":"bad"}">${money(bankBal)}</span><span class="x">as your bank reports it</span></div>
-      <div class="tile"><span class="k">Cards to pay off</span><span class="v ${owed.length?"bad":"ok"}">${owed.length?money(owedSum):"$0"}</span>
-        <div class="cards-row">${cards.map(a=>{ const nf=!a.feeds_last_refresh_date, b=+a.bank_balance||0; return `<span class="cchip ${nf?"nf":(b>0.005?"owe":"")}">${esc(String(a.account_name).replace(/®/g,"").replace(/\s+Card$/,""))}${nf?" · no feed":(b>0.005?" "+money(b):" ✓")}</span>`; }).join("")}</div></div>
-      <div class="tile"><span class="k">Charges to sort</span><span class="v ${unc?"bad":"ok"}">${unc}</span><span class="x">uncategorized in Zoho</span></div>
-      ${nofeed.length?`<div class="tile"><span class="k">No bank feed</span><span class="x">${esc(nofeed.map(a=>a.account_name).join(", "))}: check the balance in the app and import monthly.</span></div>`:""}`;
-  }
-  listInto(document.getElementById("money-items"), openItems("money").sort((x,y)=>(x.due||"9999").localeCompare(y.due||"9999")), "No bills due. Bills show up 3 days before they are due, with late-fee warnings.");
-  renderCharges(); renderOwed(); renderReimb(); renderInvoice();
-}
-let RB={sel:{}};
-function rbBrief(payer, items){
-  const total=items.reduce((t,r)=>t+(+r.amount||0),0);
-  const lines=items.map(r=>`- ${r.date||""} · ${r.title} · ${money(+r.amount||0)}${r.id?" · Zoho transaction "+r.id:""}`).join("\n");
-  if(/NYFA/i.test(payer)) return `NYFA claim\n\nQAM costs I paid myself, ${items.length} items, ${money(total)}:\n${lines}\n\nFind each receipt in Gmail, make one PDF packet, put the costs on a Zoho invoice to NYFA (QAM), file it in Drive, and hand me the note to paste.`;
-  return `NYFA claim (same process, different payer)\n\nReimbursement claim to ${payer}, ${items.length} items, ${money(total)}:\n${lines}\n\nUse the nyfa-claim skill's steps, but bill ${payer} instead of NYFA: find each receipt in Gmail, make one PDF packet, put the costs on a Zoho invoice to ${payer} (draft, I send it), file it in Drive with the payer's name, and hand me a short note to send with it.`;
-}
-function renderReimb(){
-  const re=document.getElementById("reimb"), payers=["NYFA","Brigitte Mulholland","Other"], open=S.reimb.filter(r=>r.status!=="paid");
-  if(!open.length){ re.innerHTML=`<div class="empty">${SVG.calm}<span>No expenses waiting to be claimed. Tag a charge "Reimburse from" in Sort and it lands here.</span></div>`; return; }
-  const groups={}; open.forEach(r=>{ (groups[r.payer||"Not tagged"]=groups[r.payer||"Not tagged"]||[]).push(r); });
-  re.innerHTML=Object.keys(groups).sort((a,b)=>a==="Not tagged"?1:b==="Not tagged"?-1:a.localeCompare(b)).map(p=>{
-    const list=groups[p].slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")), todo=list.filter(r=>r.status!=="claimed");
-    const picked=todo.filter(r=>RB.sel[r.id]!==false), total=picked.reduce((t,r)=>t+(+r.amount||0),0);
-    const href=NEW_CHAT+encodeURIComponent(rbBrief(p,picked));
-    return `<div class="sub-h">${esc(p)} · ${money(list.reduce((t,r)=>t+(+r.amount||0),0))}</div>`
-      + list.map(r=>`<div class="row a-money" data-reimb="${esc(r.id)}"><div class="ico">${r.status==="claimed"?SVG.check:`<input type="checkbox" data-rbsel="${esc(r.id)}" ${RB.sel[r.id]!==false?"checked":""} aria-label="Include in claim">`}</div>
-          <div class="txt"><div class="t">${esc(r.title)}</div><div class="s">${esc(r.date||"")}${r.amount?" · "+money(r.amount):""}${r.status==="claimed"?" · claimed, waiting for payment":""}</div></div><span></span>
-          <div class="acts">${payers.map(x=>`<button class="act ${r.payer===x?"on":""}" type="button" data-payer="${esc(x)}">${esc(x==="Brigitte Mulholland"?"Brigitte":x)}</button>`).join("")}</div></div>`).join("")
-      + (p!=="Not tagged"&&picked.length?`<div class="adder"><a class="pbtn" style="text-decoration:none" href="${esc(href)}" target="_blank" rel="noopener">Build claim with Claude · ${picked.length} · ${money(total)}</a><button class="act" type="button" data-rbclaimed="${esc(p)}">Mark these claimed</button></div>`:"");
-  }).join("")+`<div class="note">Build claim opens Claude with your NYFA claim skill: it finds every receipt in Gmail, makes one PDF packet, drafts the Zoho invoice to that payer and files it in Drive. It works for NYFA, Brigitte or anyone. Untick anything to leave it out.</div>`;
-}
-function renderOwed(){
-  const ow=document.getElementById("owed"); let h="";
-  if(S.errors.invoices) h+=`<div class="empty err">Couldn't load invoices from Zoho.</div>`;
-  else if(!S.invoices) h+=`<div class="empty">Loading invoices…</div>`;
-  else{
-    const inv=S.invoices.filter(i=>(+i.balance||0)>0).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")), sum=inv.reduce((s,i)=>s+(+i.balance||0),0);
-    h+=`<div class="sub-h">Invoices · ${inv.length} open · ${money(sum)}</div>`+(inv.length?inv.map(i=>{ const days=i.date?-daysUntil(i.date):null, over=i.due_date&&daysUntil(i.due_date)<0, fu=S.followups.find(f=>f.id===i.invoice_id);
-      const gm=fu?"https://mail.google.com/mail/?authuser=sean@seanfader.com&view=cm&fs=1"+(fu.to?"&to="+encodeURIComponent(fu.to):"")+"&su="+encodeURIComponent(fu.subject||"")+"&body="+encodeURIComponent(fu.body||""):"";
-      return `<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(i.customer_name)} · ${money(+i.balance||0)}</div>
-        <div class="s">${esc(i.invoice_number||"")}${i.date?" · sent "+esc(shortDate(i.date)):""}${days!==null?" · "+days+" days out":""}${i.status==="draft"?" · draft, not sent yet":""}</div>
-        ${days>=30&&fu?`<details class="why"><summary>Follow-up drafted</summary><pre class="fu">${esc(fu.body||"")}</pre><a class="act go" href="${esc(gm)}" target="_blank" rel="noopener">Open in Gmail</a></details>`:""}</div>
-        <span class="when ${over?"hot":""}">${over?"overdue":(i.due_date?"due "+esc(shortDate(i.due_date)):"")}</span></div>`; }).join(""):`<div class="empty">${SVG.calm}<span>No open invoices.</span></div>`);
-  }
-  const open=S.reimb.filter(r=>r.status!=="paid"&&r.payer), by={};
-  open.forEach(r=>{ (by[r.payer]=by[r.payer]||[]).push(r); });
-  const payers=Object.keys(by);
-  h+=`<div class="sub-h">Reimbursements owed to you</div>`+(payers.length?payers.map(p=>`<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(p)} · ${money(by[p].reduce((s,r)=>s+(+r.amount||0),0))}</div><div class="s">${by[p].length} item${by[p].length===1?"":"s"}${by[p].some(r=>r.status==="claimed")?" · "+by[p].filter(r=>r.status==="claimed").length+" claimed":""}</div></div><span></span></div>`).join(""):`<div class="empty">Nothing tagged for reimbursement.</div>`);
-  const ex=S.expected.filter(x=>x.status!=="invoiced"&&x.status!=="dismissed");
-  h+=`<div class="sub-h">Expected, not invoiced yet</div>`+(ex.length?ex.map(x=>`<div class="row a-money" data-exp="${esc(x.id)}"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(x.client||"")}${x.amount?" · "+money(x.amount):""}</div><div class="s">${esc(x.what||"")}${x.src&&safeUrl(x.src.url)?` · <a href="${esc(x.src.url)}" target="_blank" rel="noopener">email ↗</a>`:""}</div></div><span></span>
-      <div class="acts"><button class="act go" type="button" data-expinv="${esc(x.id)}">Make invoice</button><button class="act no" type="button" data-expno="${esc(x.id)}">Not owed</button></div></div>`).join(""):`<div class="empty">Talk fees, fellowship installments and photo jobs found in email show up here.</div>`);
-  ow.innerHTML=h;
-}
-
-/* Charges to sort: a port of the old Books sorter (Sept 2026). Guesses a category, says why, asks when unsure.
-   Zoho changes only when Sean taps. Claude's lookups (ride routes, Amazon items, questions) arrive in charges/<txnId>. */
 const CH_QAM="8804724000000130068", CH_BRIGITTE="8804724000000116001";
 const CH_CATS=[["Software & Apps","8804724000000101389"],["Research & Education","8804724000000101525"],
   ["Travel: Airfare & Transportation","8804724000000101437"],["Travel: Meals","8804724000000101453"],["Travel: Lodging","8804724000000101445"],
@@ -956,8 +899,60 @@ const CH_HINTS=[
   {re:/ADOBE|DROPBOX|ZOOM|NOTION|CANVA|MAILCHIMP|GITHUB|APPLE\.COM\/BILL|MICROSOFT|OPENAI/i,cat:"8804724000000101389",why:"software"}];
 const CH_NOT_BIZ=/AMEX EPAYMENT|APPLECARD|GSBANK|DIRECT DEP|INTEREST PAID|ATM FEE REBATE|PAYMENT THANK YOU|ONLINE PAYMENT|AUTOPAY|MOBILE PAYMENT|VENMO CASHOUT|CASH APP/i;
 const CH_AMAZON=/AMAZON|AMZN/i, CH_RIDE=/LYFT|EMPOWER|CURB|TAXI|AIRTRAIN|UBER|REVEL/i, CH_AMAZON_SETTLED="2026-09-14";
+
+/* ================= MONEY (round 4, Nov 15 2026) =================
+   Sort every charge into Zoho, reimburse with one tap plus one choice, invoice from the page, know what is owed.
+   Every Zoho action pushes an Undo entry ({type:"zoho"}) handled by zohoUndo(). */
+const REIMB_ITEM="8804724000000097043"; // Zoho item "Reimbursment" (invoice lines need an item)
+const PAYERS=[{key:"NYFA",name:"NYFA (QAM)",customer_id:CH_QAM_ID()},{key:"Brigitte Mulholland",name:"Brigitte Mulholland",customer_id:"8804724000000116001"}];
+function CH_QAM_ID(){ return "8804724000000130068"; }
+const SCAN_FILL="Fills in after the morning pass.";
+const unwrapZ=r=>{ const p=(r&&r.payload)||{}; return p.data||p; };
+function zOk(r){ const p=(r&&r.payload)||{}, d=p.data||p; if(p.status==="failure"||(typeof d.code==="number"&&d.code!==0)) throw new Error(d.message||"Zoho refused it"); return d; }
+async function zohoUndo(u){
+  const B="Zoho Books Banking", Z="Zoho Books", q={organization_id:ZORG};
+  if(u.op==="uncat"){ let ok=false, last; for(const id of (u.ids||[]).filter(Boolean)){ try{ zOk(await mcp.callTool(B,"ZohoBooks_uncategorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{...q,account_id:u.account_id}})); ok=true; break; }catch(e){ last=e; } } if(!ok) throw last||new Error("uncategorize failed"); }
+  else if(u.op==="restore") zOk(await mcp.callTool(B,"ZohoBooks_restore_bank_transaction",{path_variables:{transaction_id:u.id},query_params:{...q,account_id:u.account_id}}));
+  else if(u.op==="exclude") zOk(await mcp.callTool(B,"ZohoBooks_exclude_bank_transaction",{path_variables:{transaction_id:u.id},query_params:{...q,account_id:u.account_id}}));
+  else if(u.op==="delinv") zOk(await mcp.callTool(Z,"delete_invoice",{path_variables:{invoice_id:u.invoice_id},query_params:q}));
+  else if(u.op==="expupd") zOk(await mcp.callTool(Z,"update_expense",{path_variables:{expense_id:u.expense_id},query_params:q,body:u.prevBody}));
+  for(const d of (u.docs||[])){ if(d.prev) await db.doc(d.path).set(d.prev); else await db.doc(d.path).delete(); }
+}
+async function zUndoPush(entry){ if(db) try{ await pushUndo({type:"zoho",...entry}); }catch(e){} }
+
+function renderMoney(){
+  const tiles=document.getElementById("m-tiles");
+  const owedTotal=(S.invoices||[]).filter(i=>i.status!=="draft").reduce((s,i)=>s+(+i.balance||0),0)+S.reimb.filter(r=>r.status!=="paid"&&r.payer).reduce((s,r)=>s+(+r.amount||0),0);
+  if(S.errors.bank) connErr(tiles,"bank","Zoho Books","balances");
+  else if(!S.bank) tiles.innerHTML=`<div class="tile"><span class="k">Bank</span><span class="v">·</span><span class="x">Loading Zoho…</span></div>`;
+  else{
+    const banks=S.bank.filter(a=>a.account_type==="bank"), bankBal=banks.reduce((s,a)=>s+(+a.bank_balance||0),0);
+    const unc=S.bank.reduce((s,a)=>s+(+a.uncategorized_transactions||0),0);
+    const cards=(S.cards&&S.cards.cards)||null;
+    let track, trackX, cardTile;
+    if(cards){
+      const unpaid=cards.filter(c=>!c.paid && (+c.statementBalance||0)>0.005), late=unpaid.filter(c=>c.due&&daysUntil(c.due)<0);
+      const ok=bankBal>0 && late.length===0;
+      track=ok?"On track":"Not yet"; trackX=late.length?esc(late.map(c=>c.name).join(", "))+" statement past due":(bankBal>0?"Bank positive, statements paid on time":"Bank balance is negative");
+      cardTile=`<div class="tile"><span class="k">Cards to pay</span><span class="v ${unpaid.length?"bad":"ok"}">${unpaid.length?money(unpaid.reduce((s,c)=>s+(+c.statementBalance||0),0)):"$0"}</span>
+        <div class="cards-row">${cards.map(c=>`<span class="cchip ${!c.paid&&(+c.statementBalance||0)>0.005?"owe":""}">${esc(c.name)}${c.paid?" ✓":" "+money(+c.statementBalance||0)+(c.due?" due "+esc(shortDate(c.due)):"")}</span>`).join("")}</div></div>`;
+    } else { track="·"; trackX="Statement balances fill in after the morning pass"; cardTile=`<div class="tile"><span class="k">Cards to pay</span><span class="v">·</span><span class="x">${SCAN_FILL} Judged by statement balance and due date, Apple Card from the monthly import.</span></div>`; }
+    tiles.innerHTML=`
+      <div class="tile"><span class="k">This month</span><span class="v ${track==="On track"?"ok":(track==="·"?"":"bad")}">${track}</span><span class="x">${trackX}</span></div>
+      <div class="tile"><span class="k">Bank balance</span><span class="v ${bankBal>0?"ok":"bad"}">${money(bankBal)}</span><span class="x">as your bank reports it</span></div>
+      ${cardTile}
+      <div class="tile"><span class="k">Charges to sort</span><span class="v ${unc?"bad":"ok"}">${unc}</span><span class="x">uncategorized in Zoho</span></div>
+      <div class="tile"><span class="k">Owed to you</span><span class="v">${money(owedTotal)}</span><span class="x">sent invoices and reimbursements</span></div>`;
+  }
+  listInto(document.getElementById("money-items"), openItems("money").sort((x,y)=>(x.due||"9999").localeCompare(y.due||"9999")), "No bills due. Bills show up 3 days before they are due, with late-fee warnings.");
+  renderCharges(); renderReimb(); renderOwed(); renderInvoice();
+}
+
+/* ---------- Sort ---------- */
 const CH_INC=[["Teaching Income","8804724000000101293"],["Speaking Fees & Honoraria","8804724000000101299"],["Freelance Income","8804724000000101305"],["Art Sales","8804724000000101281"],["Reimbursements","8804724000000101311"],["General Income","8804724000000000391"],["Interest Income","8804724000000000394"],["Sales","8804724000000000388"]];
-let CH={open:{auto:true,needs:true,looked:true,personal:false,parked:false}, force:{}, done:[], tag:{}, refund:{}, bulk:{running:false,stop:false,armed:0}, q:""};
+const CH_REIMB_LIKE=/SPOKEO|GENEALOGYBANK|SANTACLARARECORD|VCN\*|COURT|ANTHROPIC|CLAUDE|PERPLEXITY|OPENAI|CREDITS SAN FRANCISCO|ENT PRO SAN FRANCISCO|UPS|USPS|FEDEX|DHL|HOTEL|AIRBNB|BOOKING\.COM|AIRLINE|AIR LINES|AIRWAYS|DELTA AIR|AMTRAK|LYFT|UBER|CURB|TAXI|AIRTRAIN|REVEL|EMPOWER|B&H|BHPHOTO|BLICK|FRAM/i;
+const CH_BAY=/SAN FRANCISCO|SAN JOSE|OAKLAND|SFO|\bBART\b|BERKELEY|PALO ALTO|SANTA CLARA|CA\s*$/i;
+let CH={view:"todo", open:{auto:true,needs:true,looked:true,personal:false,parked:false}, force:{}, done:[], area:{}, refund:{}, pick:null, bulk:{running:false,stop:false,armed:0}, q:""};
 const chName=d=>String(d||"").replace(/^AplPay\s+/i,"").replace(/^TST\*\s*/i,"").replace(/\s{2,}/g," ").trim();
 const chKey=t=>String(t.payee||chName(t.description)).toUpperCase().replace(/[^A-Z]+/g," ").trim().split(" ").slice(0,2).join(" ");
 const chIn=t=>t.debit_or_credit==="debit";
@@ -966,25 +961,29 @@ const chExp=()=>(S.coa&&S.coa.exp.length)?S.coa.exp:CH_CATS;
 const chIncL=()=>(S.coa&&S.coa.inc.length)?S.coa.inc:CH_INC;
 const chCat=id=>{ const c=chExp().concat(chIncL()).find(x=>x[1]===id); return c?c[0]:""; };
 function shortDate(s){ const d=parse(s); return d?MON[d.getMonth()]+" "+d.getDate():(s||""); }
-function chLearned(t){
-  const k=chKey(t); if(!k) return null; let best=null;
-  Object.values(S.sort).forEach(r=>{ if(r.vendorKey===k && r.mode && !r.parked && (!best||(r.ts||0)>(best.ts||0))) best=r; });
-  return best;
+function chLearned(t){ const k=chKey(t); if(!k) return null; let best=null;
+  Object.values(S.sort).forEach(r=>{ if(r.vendorKey===k && r.mode && !r.parked && (!best||(r.ts||0)>(best.ts||0))) best=r; }); return best; }
+function chHint(d){ const h=CH_HINTS.find(x=>x.re.test(d||"")); return h?{cat:h.cat,why:h.why,payer:h.mode==="qam"?"NYFA":""}:{}; }
+function payerGuess(t,c){
+  const d=(t.payee||"")+" "+(t.description||""); let g=(c&&c.payer)||"";
+  const look=S.chlook[t.transaction_id]; if(look&&look.reimb) g=look.reimb==="Brigitte"?"Brigitte Mulholland":look.reimb;
+  if(!g){ const h=chHint(d); g=h.payer||""; }
+  const travel=CH_RIDE.test(d)||/HOTEL|AIRBNB|AIRLINE|AIR LINES|AIRWAYS|DELTA AIR|AMTRAK|RESTAURANT|CAFE/i.test(d)||((c&&c.cat)==="8804724000000101437"||(c&&c.cat)==="8804724000000101445"||(c&&c.cat)==="8804724000000101453");
+  if(g==="NYFA" && travel && (CH_BAY.test(d)||((look&&look.items)||[]).join(" ").match(CH_BAY))) g=""; // Bay Area trips are practice travel
+  return g;
 }
-function chHint(d){ const h=CH_HINTS.find(x=>x.re.test(d||"")); return h?{cat:h.cat,reimb:h.mode==="qam"?"NYFA":"",area:h.mode==="qam"?"qam":"",why:h.why}:{}; }
 function chClassify(t){
   const d=(t.payee||"")+" "+(t.description||""), id=t.transaction_id, sr=S.sort[id]||{}, look=S.chlook[id], inn=chIn(t);
   if(sr.parked) return {group:"parked", why:sr.note||"parked until you decide"};
   const forced=!!CH.force[id], learned=chLearned(t);
-  const c={group:"needs", cat:"", why:"", items:null, q:"", url:"", reimb:"", area:""};
-  if(look){ Object.assign(c,{group:"looked", items:look.items||[], cat:look.suggest&&look.suggest!=="personal"?look.suggest:"", why:look.why||"", q:look.question||"", url:look.url||"", none:!!look.none, reimb:look.reimb||"", area:look.area||""});
-    if(look.suggest==="personal"&&!forced) c.personal=true; }
+  const c={group:"needs", cat:"", why:"", items:null, q:"", url:"", area:""};
+  if(look){ Object.assign(c,{group:"looked", items:look.items||[], cat:look.suggest&&look.suggest!=="personal"?look.suggest:"", why:look.why||"", q:look.question||"", url:look.url||"", none:!!look.none, area:look.area||""}); }
   if(learned){ if(learned.mode==="personal"){ if(!c.cat&&!forced&&!look) return {group:"personal", why:"personal last time"}; }
-    else if(!c.cat){ c.cat=learned.cat||""; c.reimb=c.reimb||learned.reimb||""; c.area=c.area||learned.area||""; c.why=c.why||("same as last time"+(learned.note?" ("+learned.note+")":"")); } }
+    else if(!c.cat){ c.cat=learned.cat||""; c.area=c.area||learned.area||""; c.why=c.why||("same as last time"+(learned.note?" ("+learned.note+")":"")); } }
   if(look||learned) return c;
   if(inn && /NYFA/i.test(d)) return Object.assign(c,{nyfa:true, why:"NYFA paid you. If it matches the claim invoice, tap Payment for an invoice."});
   if(CH_RIDE.test(d)) return Object.assign(c,{cat:"8804724000000101437", why:"ride: the morning pass adds the route and what was on your calendar"});
-  if(CH_AMAZON.test(d)) return Object.assign(c,{why:inn?"Amazon refund: the morning pass finds which item was returned":"Amazon: the morning pass finds what you bought"});
+  if(CH_AMAZON.test(d)) return Object.assign(c,{why:inn?"Amazon refund: the morning pass finds which item came back":"Amazon: the morning pass finds what you bought"});
   if(!forced && CH_NOT_BIZ.test(d)) return {group:"personal", why:"payment, transfer or bank credit"};
   if(inn) return Object.assign(c,{why:"money in: pick what it was"});
   const h=chHint(d); if(h.why) return Object.assign(c,h);
@@ -992,110 +991,130 @@ function chClassify(t){
   return {group:"personal"};
 }
 function chTop(t){ const inn=chIn(t); return `<div class="bk2top"><span class="d">${esc(shortDate(t.date))}</span><span class="t">${esc(t.payee||chName(t.description))}</span><span class="a${inn?" in":""}">${inn?"+":""}${chMoney(t.amount)}</span></div>`; }
-function chMeta(t){ return `<div class="bk2meta">${esc(String(t.account_name||"").replace(/®/g,""))} · <span class="raw">${esc(t.description||"")}</span></div>`; }
+function chMeta(t,extra){ return `<div class="bk2meta">${esc(String(t.account_name||"").replace(/®/g,""))} · <span class="raw">${esc(t.description||"")}</span>${extra||""}</div>`; }
+function reimbBtn(t){ const id=esc(t.transaction_id), r=S.reimb.find(x=>x.id===t.transaction_id&&x.status!=="cancelled");
+  return r?`<span class="bk2tagged">Reimburse: ${esc(r.payer||"")}</span>`:`<button class="bk2b reimb" type="button" data-chreimb="${id}">Reimburse</button>`; }
+function pickerHTML(t,c){
+  if(!CH.pick||CH.pick.id!==t.transaction_id) return "";
+  const id=esc(t.transaction_id), g=CH.pick.payer!==undefined?CH.pick.payer:payerGuess(t,c), q=(CH.pick.q||"").toLowerCase();
+  const others=q&&S.zclients?S.zclients.filter(z=>(z.contact_name||"").toLowerCase().includes(q)).slice(0,6):[];
+  return `<div class="pick"><div class="pickh">Who pays you back?</div>
+    <div class="pickrow">${PAYERS.map(p=>`<button type="button" class="tg ${g===p.key?"on":""}" data-pkpayer="${esc(p.key)}">${esc(p.name)}</button>`).join("")}<button type="button" class="tg ${g==="__other"?"on":""}" data-pkpayer="__other">Other</button></div>
+    ${g==="__other"?`<div class="pickrow"><input type="search" data-pkq="${id}" value="${esc(CH.pick.q||"")}" placeholder="${S.zclients?"Search your Zoho clients":"Loading clients…"}" aria-label="Search clients">${others.map(z=>`<button type="button" class="tg ${CH.pick.cid===z.contact_id?"on":""}" data-pkcid="${esc(z.contact_id)}" data-pkname="${esc(z.contact_name)}">${esc(z.contact_name)}</button>`).join("")}</div>`:""}
+    <div class="pickrow"><button type="button" class="bk2b file" data-pkgo="${id}">Reimburse ${g&&g!=="__other"?"from "+esc(g.replace(" (QAM)","")):(CH.pick.cname?"from "+esc(CH.pick.cname):"")}</button><button type="button" class="bk2b ghost" data-pkx="1">Cancel</button></div></div>`;
+}
+function catSelect(t,c){ const inn=chIn(t), refund=!!CH.refund[t.transaction_id], list=(inn&&!refund)?chIncL():chExp();
+  return `<select data-chcat="${esc(t.transaction_id)}" aria-label="Category"><option value="">Pick a category</option>${list.map(k=>`<option value="${k[1]}"${c.cat===k[1]?" selected":""}>${esc(k[0])}</option>`).join("")}</select>`; }
 function chLine(t,c){
-  const id=esc(t.transaction_id), inn=chIn(t), refund=!!CH.refund[t.transaction_id], tag=CH.tag[t.transaction_id]||{reimb:c.reimb||"",area:c.area||""};
-  CH.tag[t.transaction_id]=tag;
-  const list=(inn&&!refund)?chIncL():chExp();
-  const opts='<option value="">Pick a category</option>'+list.map(k=>`<option value="${k[1]}"${c.cat===k[1]?" selected":""}>${esc(k[0])}</option>`).join("");
+  const id=esc(t.transaction_id), inn=chIn(t), refund=!!CH.refund[t.transaction_id], area=CH.area[t.transaction_id]!==undefined?CH.area[t.transaction_id]:(c.area||"");
   const items=(c.items&&c.items.length)?`<div class="bk2items">${c.items.map(esc).join(" · ")}</div>`:"";
   const guess=c.cat?`<div class="bk2guess">Claude's guess: <b>${esc(chCat(c.cat))}</b>${c.why?" · "+esc(c.why):""}</div>`:(c.why?`<div class="bk2guess">${esc(c.why)}</div>`:"");
-  let main;
-  if(inn) main=`<select data-chcat="${id}" aria-label="Category">${opts}</select><button class="bk2b file" type="button" data-chfile="${id}">${refund?"File as refund":"File it"}</button><button class="bk2b" type="button" data-chinv="${id}">Payment for an invoice</button><button class="bk2b" type="button" data-chrefund="${id}">${refund?"Not a refund":"Refund"}</button><button class="bk2b per" type="button" data-chper="${id}">Not business</button>`;
-  else main=`<select data-chcat="${id}" aria-label="Category">${opts}</select><button class="bk2b file" type="button" data-chfile="${id}">File it</button><button class="bk2b per" type="button" data-chper="${id}">Personal</button>`;
-  const tags=inn?"":`<div class="bk2tags"><span>Reimburse from</span>${["NYFA","Brigitte","Other"].map(r=>`<button type="button" class="tg ${tag.reimb===r?"on":""}" data-chreimb="${id}" data-v="${r}">${r}</button>`).join("")}<span>For</span>${[["qam","QAM"],["practice","Practice"],["personal","Personal"]].map(([k,l])=>`<button type="button" class="tg ${tag.area===k?"on":""}" data-charea="${id}" data-v="${k}">${l}</button>`).join("")}</div>`;
+  const main=inn?`${catSelect(t,c)}<button class="bk2b file" type="button" data-chfile="${id}">${refund?"File as refund":"File it"}</button><button class="bk2b" type="button" data-chinv="${id}">Payment for an invoice</button><button class="bk2b" type="button" data-chrefund="${id}">${refund?"Not a refund":"Refund"}</button><button class="bk2b per" type="button" data-chper="${id}">Not business</button>`
+    :`${catSelect(t,c)}<button class="bk2b file" type="button" data-chfile="${id}">File it</button><button class="bk2b per" type="button" data-chper="${id}">Personal</button>${reimbBtn(t)}`;
+  const tags=inn?"":`<div class="bk2tags"><span>For</span>${[["qam","QAM"],["practice","Practice"],["personal","Personal"]].map(([k,l])=>`<button type="button" class="tg ${area===k?"on":""}" data-charea="${id}" data-v="${k}">${l}</button>`).join("")}</div>`;
   return `<div class="bk2line" data-chline="${id}">${chTop(t)}${chMeta(t)}${items}
     ${c.url&&safeUrl(c.url)?`<div class="bk2meta"><a href="${esc(c.url)}" target="_blank" rel="noopener">receipt ↗</a></div>`:(c.none?`<div class="bk2meta">no receipt found</div>`:"")}
     ${guess}${c.q?`<div class="bk2q">Claude asks: ${esc(c.q)}</div>`:""}
-    <div class="bk2act">${main}</div>${tags}
+    <div class="bk2act">${main}</div>${tags}${pickerHTML(t,c)}
     <div class="bk2act"><input type="text" class="bk2note" data-chnote="${id}" maxlength="60" placeholder="${c.q?"Your answer":"Note (optional)"}" aria-label="Note for this charge"><button class="bk2b ghost" type="button" data-chpark="${id}">Park it</button></div><div class="bk2msg" data-chmsg="${id}"></div></div>`;
 }
 function chCompact(t,c){ const id=esc(t.transaction_id), inn=chIn(t);
   return `<div class="bk2line" data-chline="${id}">${chTop(t)}${chMeta(t)}${c.why?`<div class="bk2guess">${esc(c.why)}</div>`:""}
-    <div class="bk2act"><button class="bk2b per" type="button" data-chper="${id}">${inn?"Not business":"Personal"}</button><button class="bk2b" type="button" data-chforce="${id}">It's business</button><button class="bk2b ghost" type="button" data-chpark="${id}">Park it</button></div><div class="bk2msg" data-chmsg="${id}"></div></div>`; }
+    <div class="bk2act"><button class="bk2b per" type="button" data-chper="${id}">${inn?"Not business":"Personal"}</button><button class="bk2b" type="button" data-chforce="${id}">It's business</button>${inn?"":reimbBtn(t)}<button class="bk2b ghost" type="button" data-chpark="${id}">Park it</button></div>${pickerHTML(t,c)}<div class="bk2msg" data-chmsg="${id}"></div></div>`; }
 function chParked(t,c){ const id=esc(t.transaction_id);
   return `<div class="bk2line" data-chline="${id}">${chTop(t)}${chMeta(t)}<div class="bk2guess">${esc(c.why)}</div>
-    <div class="bk2act"><button class="bk2b" type="button" data-chunpark="${id}">Decide now</button></div><div class="bk2msg" data-chmsg="${id}"></div></div>`; }
+    <div class="bk2act"><button class="bk2b" type="button" data-chunpark="${id}">Decide now</button>${chIn(t)?"":reimbBtn(t)}</div>${pickerHTML(t,c)}<div class="bk2msg" data-chmsg="${id}"></div></div>`; }
 function chGroup(k,title,n,inner,extra){ return `<div class="bk2grp${CH.open[k]?"":" shut"}"><h3 data-chtog="${k}">${esc(title)} <span class="n">${n}</span></h3><div class="bk2rows">${extra||""}${inner}</div></div>`; }
+function allLine(t){
+  const id=esc(t.transaction_id), st=t.status==="excluded"?"marked personal":t.status==="uncategorized"?"not sorted yet":(t.offset_account_name?"filed: "+t.offset_account_name:(t.transaction_type_formatted||t.status||""));
+  return `<div class="bk2line" data-chline="${id}">${chTop(t)}${chMeta(t,` · <b>${esc(st)}</b>`)}<div class="bk2act">${chIn(t)?"":reimbBtn(t)}</div>${pickerHTML(t,{})}<div class="bk2msg" data-chmsg="${id}"></div></div>`;
+}
 function renderCharges(){
   const el=document.getElementById("charges");
+  if(el.contains(document.activeElement)&&document.activeElement.matches("[data-pkq]")) return;
   if(S.errors.txns){ connErr(el,"txns","Zoho Books Banking","charges"); return; }
-  if(!S.txns){ el.innerHTML=`<div class="empty">Loading your bank feed…</div>`; return; }
   const keep={}; el.querySelectorAll("[data-chcat]").forEach(x=>{ (keep[x.dataset.chcat]=keep[x.dataset.chcat]||{}).cat=x.value; });
   el.querySelectorAll("[data-chnote]").forEach(x=>{ (keep[x.dataset.chnote]=keep[x.dataset.chnote]||{}).note=x.value; });
+  const head=`<div class="adder"><span class="seg"><button type="button" class="act ${CH.view==="todo"?"on":""}" data-chview="todo">To sort</button><button type="button" class="act ${CH.view==="all"?"on":""}" data-chview="all">All charges, 90 days</button></span><input type="search" id="ch-q" placeholder="Search payee" value="${esc(CH.q)}" aria-label="Search charges"></div><div class="bk2status" id="ch-status" aria-live="polite"></div>`;
+  const q=CH.q.toLowerCase(), match=t=>!q||((t.payee||"")+" "+(t.description||"")+" "+(t.offset_account_name||"")).toLowerCase().includes(q);
+  if(CH.view==="all"){
+    if(!S.alltx){ el.innerHTML=head+`<div class="empty">Loading the last 90 days from every card and account…</div>`; loadAllTx(); return; }
+    const rows=S.alltx.filter(match);
+    el.innerHTML=head+`<div class="note" style="border-top:0">Every charge from the last 90 days, whatever its status. Reimburse works on any of them: filed ones are switched to billable in Zoho, personal ones are restored first.</div>`
+      +(rows.length?rows.slice(0,200).map(allLine).join("")+(rows.length>200?`<div class="note">Showing 200 of ${rows.length}. Search to narrow.</div>`:""):`<div class="empty">Nothing matches.</div>`);
+    return;
+  }
+  if(!S.txns){ el.innerHTML=head+`<div class="empty">Loading your bank feed…</div>`; return; }
   S.txns=S.txns.filter(t=>!((S.sort[t.transaction_id]||{}).mode));
-  const q=CH.q.toLowerCase(), g={needs:[],looked:[],personal:[],parked:[]};
-  S.txns.filter(t=>!q||((t.payee||"")+" "+(t.description||"")).toLowerCase().includes(q)).forEach(t=>{ const c=chClassify(t); g[c.group].push([t,c]); });
+  const g={needs:[],looked:[],personal:[],parked:[]};
+  S.txns.filter(match).forEach(t=>{ const c=chClassify(t); g[c.group].push([t,c]); });
   const auto=S.automatch.filter(a=>!a.undone && (Date.now()-(a.ts||0))<30*864e5).sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const bulkN=g.personal.length;
-  const bulk=bulkN?`<div class="bk2bulk"><button class="bk2b per" type="button" id="ch-bulk">${CH.bulk.running?"Stop":(CH.bulk.armed?`Tap again to mark all ${bulkN} personal`:`Mark all ${bulkN} as personal`)}</button><span>Look first. Anything that is really business: tap It's business.</span></div>`:"";
-  el.innerHTML=`<div class="note" style="border-top:0">Every charge gets a category in Zoho. Claude preselects its best guess; tap <b>File it</b> to save, or <b>Personal</b>. Reimbursement and QAM tags are extra. <b>Nothing changes in Zoho until you tap</b>, except money that exactly matches one open invoice.</div>
-    <div class="adder"><input type="search" id="ch-q" placeholder="Search payee" value="${esc(CH.q)}" aria-label="Search charges"><span class="s">${S.txns.length} left to sort</span></div>
-    <div class="bk2status" id="ch-status" aria-live="polite"></div>`
-    + (auto.length?chGroup("auto","Matched automatically",auto.length,auto.map(a=>`<div class="bk2line"><div class="bk2top"><span class="d">${esc(shortDate(a.date))}</span><span class="t">${esc(a.title||"Payment")} → ${esc(a.invoice_number||"invoice")}</span><span class="a in">+${chMoney(a.amount)}</span></div><div class="bk2meta">${esc(a.customer||"")} paid in full</div><div class="bk2act"><button class="bk2b" type="button" data-chautoundo="${esc(a.id)}">Undo</button></div></div>`).join("")):"")
+  const bulkable=g.personal.filter(([t])=>!CH_REIMB_LIKE.test((t.payee||"")+" "+(t.description||""))), skipped=g.personal.length-bulkable.length;
+  const bulk=bulkable.length?`<div class="bk2bulk"><button class="bk2b per" type="button" id="ch-bulk">${CH.bulk.running?"Stop":(CH.bulk.armed?`Tap again: mark ${bulkable.length} personal`:`Mark ${bulkable.length} personal`)}</button><span>${skipped?`Skips ${skipped} that look reimbursable (QAM, AI tools, research, shipping, travel). `:""}Look first.</span></div>`:"";
+  el.innerHTML=head+`<div class="note" style="border-top:0">Claude preselects its best guess. <b>File it</b> saves the category, <b>Personal</b> excludes it, <b>Reimburse</b> bills it to whoever pays you back. Nothing changes in Zoho until you tap, except money that exactly matches one open invoice. Every action can be undone.</div>`
+    + chGroup("auto","Matched automatically",auto.length,auto.length?auto.map(a=>`<div class="bk2line"><div class="bk2top"><span class="d">${esc(shortDate(a.date))}</span><span class="t">${esc(a.title||"Payment")} → ${esc(a.invoice_number||"invoice")}</span><span class="a in">+${chMoney(a.amount)}</span></div><div class="bk2meta">${esc(a.customer||"")} paid${a.reimbPaid?" · reimbursement items marked paid":""}</div><div class="bk2act"><button class="bk2b" type="button" data-chautoundo="${esc(a.id)}">Undo</button></div></div>`).join(""):`<div class="empty">${SCAN_FILL}</div>`)
     + (S.txns.length?"":`<div class="empty">${SVG.calm}<span>Nothing waiting. Your bank feed is fully sorted.</span></div>`)
-    + (g.looked.length?chGroup("looked","Claude looked these up",g.looked.length,g.looked.map(x=>chLine(...x)).join("")):"")
+    + (g.looked.length?chGroup("looked","Claude looked these up",g.looked.length,g.looked.map(x=>chLine(...x)).join("")):(S.txns.length?chGroup("looked","Claude looked these up",0,`<div class="empty">Amazon items, ride routes and receipts: ${SCAN_FILL}</div>`):""))
     + (g.needs.length?chGroup("needs","Needs you",g.needs.length,g.needs.map(x=>chLine(...x)).join("")):"")
     + (g.personal.length?chGroup("personal","Probably personal",g.personal.length,g.personal.map(x=>chCompact(...x)).join(""),bulk):"")
     + (g.parked.length?chGroup("parked","Parked",g.parked.length,g.parked.map(x=>chParked(...x)).join("")):"")
-    + (CH.done.length?`<div class="sub-h">Done this visit (${CH.done.length})</div>`+CH.done.slice(0,40).map((d,i)=>`<div class="bk2row"><span class="t">${esc(d.text)}<small>${esc(d.label)}${d.undone?" · undone":""}</small></span><span class="a">${chMoney(d.amt)}</span>${d.line&&!d.undone?`<button class="bk2b" type="button" data-chundo="${i}">Undo</button>`:""}</div>`).join(""):"");
+    + (CH.done.length?`<div class="sub-h">Done this visit (${CH.done.length}) · Undo at the top undoes the last one</div>`+CH.done.slice(0,40).map(d=>`<div class="bk2row"><span class="t">${esc(d.text)}<small>${esc(d.label)}</small></span><span class="a">${chMoney(d.amt)}</span></div>`).join(""):"");
   Object.keys(keep).forEach(id=>{ const k=keep[id], c=el.querySelector(`[data-chcat="${id}"]`), n=el.querySelector(`[data-chnote="${id}"]`); if(c&&k.cat) c.value=k.cat; if(n&&k.note) n.value=k.note; });
 }
-const chT=id=>(S.txns||[]).find(t=>t.transaction_id===id);
+async function loadAllTx(){
+  if(S.alltxLoading||!mcp) return; S.alltxLoading=true;
+  try{ const since=ymd(addDays(TODAY(),-90)), out=[];
+    const accts=(S.bank||[]).filter(a=>a.account_type==="bank"||a.account_type==="credit_card");
+    for(const a of accts){ for(let page=1;page<=5;page++){
+      const r=await mcp.callTool("Zoho Books Banking","ZohoBooks_list_bank_transactions",{query_params:{organization_id:ZORG,account_id:a.account_id,filter_by:"Status.All",date_start:since,sort_column:"date",per_page:200,page}},{cache:{staleTime:600000,gcTime:86400000}});
+      const d=unwrapZ(r); (d.banktransactions||[]).forEach(t=>{ if(!t.account_name) t.account_name=a.account_name; out.push(t); }); if(!(d.page_context&&d.page_context.has_more_page)) break; } }
+    S.alltx=out.filter(t=>(t.date||"")>=since).sort((x,y)=>(y.date||"").localeCompare(x.date||"")); }
+  catch(e){ S.alltx=[]; toast("Couldn't load all charges from Zoho."); }
+  S.alltxLoading=false; renderCharges();
+}
+const chT=id=>(S.txns||[]).find(t=>t.transaction_id===id)||(S.alltx||[]).find(t=>t.transaction_id===id);
 const chMsg=(id,m)=>{ const x=document.querySelector(`[data-chmsg="${id}"]`); if(x) x.textContent=m||""; };
 const chBusy=(id,on)=>{ const x=document.querySelector(`[data-chline="${id}"]`); if(x) x.classList.toggle("busy",!!on); };
 const chNote=id=>{ const n=document.querySelector(`[data-chnote="${id}"]`); return n?n.value.trim():""; };
-function chOk(r){ const p=(r&&r.payload)||{}, d=p.data||p; if(p.status==="failure"||(typeof d.code==="number"&&d.code!==0)) throw new Error(d.message||"Zoho refused it"); return d; }
-function chDrop(id){ S.txns=S.txns.filter(t=>t.transaction_id!==id); delete CH.force[id]; }
-async function chRecord(t, data){ if(!db) return; try{ await db.doc("sort/"+t.transaction_id).set({title:t.payee||chName(t.description),amount:+t.amount||0,date:t.date||null,account:t.account_name||"",vendorKey:chKey(t),ts:Date.now(),...data}); }catch(e){} }
+const chCatOf=id=>{ const s=document.querySelector(`[data-chcat="${id}"]`); return s?s.value:""; };
+function chDrop(id){ if(S.txns) S.txns=S.txns.filter(t=>t.transaction_id!==id); delete CH.force[id]; }
+function sortDoc(t,data){ return {title:t.payee||chName(t.description),amount:+t.amount||0,date:t.date||null,account:t.account_name||"",vendorKey:chKey(t),ts:Date.now(),...data}; }
+async function chRecord(t, data){ if(!db) return; try{ await db.doc("sort/"+t.transaction_id).set(sortDoc(t,data)); }catch(e){} }
+const sortPrev=id=>{ const p=S.sort[id]; if(!p) return null; const c={...p}; delete c.id; return c; };
 async function chFile(id){
   const t=chT(id); if(!t||!mcp) return;
-  const sel=document.querySelector(`[data-chcat="${id}"]`), cat=sel?sel.value:"";
-  if(!cat){ chMsg(id,"Pick a category first."); return; }
-  const inn=chIn(t), refund=inn&&!!CH.refund[id], tag=inn?{}:(CH.tag[id]||{}), note=chNote(id);
+  const cat=chCatOf(id); if(!cat){ chMsg(id,"Pick a category first."); return; }
+  const inn=chIn(t), refund=inn&&!!CH.refund[id], area=inn?"":(CH.area[id]!==undefined?CH.area[id]:(chClassify(t).area||"")), note=chNote(id);
   const vendor=(t.payee||chName(t.description))+(note?": "+note:"");
-  const sfx=(tag.area?" ["+({qam:"QAM",practice:"practice",personal:"personal"}[tag.area])+"]":"")+(tag.reimb==="NYFA"?" Not yet claimed from NYFA":tag.reimb==="Brigitte"?" To invoice Brigitte":tag.reimb==="Other"?" To reimburse":"");
-  const desc=(refund?"Refund: ":"")+vendor.slice(0,100-sfx.length-(refund?8:0))+sfx;
+  const sfx=area?" ["+({qam:"QAM",practice:"practice",personal:"personal"}[area])+"]":"";
+  const desc=((refund?"Refund: ":"")+vendor).slice(0,100-sfx.length)+sfx;
   chBusy(id,true); chMsg(id,"");
-  try{
-    if(refund) chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},
-        body:{transaction_type:"expense_refund",from_account_id:cat,to_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc}}));
-    else if(inn) chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},
-        body:{transaction_type:"other_income",from_account_id:cat,to_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc}}));
-    else{
-      const body={account_id:cat,paid_through_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc};
-      if(tag.reimb==="NYFA"){ body.customer_id=CH_QAM; body.is_billable=true; }
-      if(tag.reimb==="Brigitte"){ body.customer_id=CH_BRIGITTE; body.is_billable=true; }
-      chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction_as_expense",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},body}));
-    }
-    await chRecord(t,{mode:refund?"refund":"file",cat,reimb:tag.reimb||"",area:tag.area||"",note});
-    if(tag.reimb) try{ await db.doc("reimb/"+id).set({title:vendor,amount:+t.amount||0,date:t.date||null,payer:tag.reimb==="Brigitte"?"Brigitte Mulholland":tag.reimb,status:"open",from:"charges",taggedAt:Date.now()}); }catch(e){}
-    chDrop(id); CH.done.unshift({id,text:vendor,amt:t.amount,label:(refund?"refund · ":"")+chCat(cat)+(tag.reimb?" · reimburse from "+tag.reimb:"")+(tag.area?" · "+tag.area:"")});
+  try{ let d;
+    if(refund) d=zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},body:{transaction_type:"expense_refund",from_account_id:cat,to_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc}}));
+    else if(inn) d=zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},body:{transaction_type:"other_income",from_account_id:cat,to_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc}}));
+    else d=zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction_as_expense",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},body:{account_id:cat,paid_through_account_id:t.account_id,date:t.date,amount:+t.amount,description:desc}}));
+    const newId=(d.expense&&d.expense.expense_id)||(d.banktransaction&&d.banktransaction.transaction_id)||d.transaction_id||"";
+    const prev=sortPrev(id); await chRecord(t,{mode:refund?"refund":"file",cat,area,note,zohoId:newId});
+    await zUndoPush({op:"uncat",ids:[newId,id],account_id:t.account_id,label:"filed "+(t.payee||chName(t.description)),docs:[{path:"sort/"+id,prev}]});
+    chDrop(id); CH.done.unshift({text:vendor,amt:t.amount,label:(refund?"refund · ":"")+chCat(cat)+(area?" · "+area:"")});
     toast("Filed in Zoho"); renderCharges();
   }catch(e){ chBusy(id,false); chMsg(id,"Zoho said no: "+((e&&e.message)||"unknown error")+". Nothing was changed."); }
 }
 async function chPersonal(id, quiet){
   const t=chT(id); if(!t||!mcp) return false;
   chBusy(id,true); chMsg(id,"");
-  try{
-    chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_exclude_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG,account_id:t.account_id}}));
-    await chRecord(t,{mode:"personal",note:chNote(id)});
-    chDrop(id); CH.done.unshift({id,text:t.payee||chName(t.description),amt:t.amount,label:"marked personal",line:t});
+  try{ zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_exclude_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG,account_id:t.account_id}}));
+    const prev=sortPrev(id); await chRecord(t,{mode:"personal",note:chNote(id)});
+    await zUndoPush({op:"restore",id,account_id:t.account_id,label:"personal: "+(t.payee||chName(t.description)),docs:[{path:"sort/"+id,prev}]});
+    chDrop(id); CH.done.unshift({text:t.payee||chName(t.description),amt:t.amount,label:"marked personal"});
     if(!quiet) renderCharges(); return true;
   }catch(e){ chBusy(id,false); chMsg(id,"Zoho said no: "+((e&&e.message)||"unknown error")+". Nothing was changed."); return false; }
 }
-async function chUndo(i){
-  const d=CH.done[i]; if(!d||!d.line||!mcp) return;
-  try{ chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_restore_bank_transaction",{path_variables:{transaction_id:d.id},query_params:{organization_id:ZORG,account_id:d.line.account_id}}));
-    d.undone=true; S.txns.push(d.line); S.txns.sort((a,b)=>(b.date||"").localeCompare(a.date||"")); CH.force[d.id]=1;
-    if(db) try{ await db.doc("sort/"+d.id).delete(); }catch(e){}
-    renderCharges(); }
-  catch(e){ toast("Undo didn't go through. Fix it in Zoho."); }
-}
 async function chAutoUndo(id){
   const a=S.automatch.find(x=>x.id===id); if(!a||!mcp) return;
-  try{ chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_uncategorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG,account_id:a.account_id}}));
-    if(db) await db.doc("automatch/"+id).set({...a,undone:true,undoneAt:Date.now()});
+  try{ await zohoUndo({op:"uncat",ids:[a.payment_txn_id,id].filter(Boolean),account_id:a.account_id});
+    if(db){ await db.doc("automatch/"+id).set({...a,undone:true,undoneAt:Date.now()});
+      for(const r of S.reimb.filter(r=>r.status==="paid"&&r.paidBy===id)) await db.doc("reimb/"+r.id).set({...r,status:"claimed",paidBy:null}); }
     toast("Undone. The payment is back in Sort."); loadZoho(true); }
   catch(e){ toast("Undo didn't go through. Fix it in Zoho."); }
 }
@@ -1106,8 +1125,8 @@ async function chPark(id,on){
 }
 async function chInvPick(id){
   const t=chT(id), m=document.querySelector(`[data-chmsg="${id}"]`); if(!t||!m) return;
-  const list=(S.invoices||[]).filter(i=>(+i.balance||0)>0);
-  if(!list.length){ m.textContent="No open invoices with a balance, so there is nothing to match this to."; return; }
+  const list=(S.invoices||[]).filter(i=>(+i.balance||0)>0&&i.status!=="draft");
+  if(!list.length){ m.textContent="No sent invoices with a balance, so there is nothing to match this to."; return; }
   const amt=+t.amount||0, exact=list.filter(i=>Math.abs((+i.balance||0)-amt)<0.005), pick=exact.length===1?exact[0].invoice_id:"";
   m.innerHTML=`<div class="bk2inv"><select data-chinvsel="${esc(id)}" aria-label="Open invoice">${list.map(i=>`<option value="${esc(i.invoice_id)}"${i.invoice_id===pick?" selected":""}>${esc(i.customer_name)} · ${esc(i.invoice_number)} · ${chMoney(i.balance)}</option>`).join("")}</select><button class="bk2b file" type="button" data-chinvgo="${esc(id)}">Record the payment</button></div>`
     +(exact.length===1?`<div class="bk2hint">${esc(exact[0].customer_name)} owes exactly ${chMoney(amt)}, so that one is picked.</div>`:"");
@@ -1116,20 +1135,183 @@ async function chInvPay(id){
   const t=chT(id), sel=document.querySelector(`[data-chinvsel="${id}"]`); if(!t||!sel||!mcp) return;
   const inv=(S.invoices||[]).find(i=>i.invoice_id===sel.value); if(!inv) return;
   const amt=+t.amount||0; chBusy(id,true);
-  try{ chOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction_as_customer_payment",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},
+  try{ const d=zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction_as_customer_payment",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},
       body:{customer_id:inv.customer_id,account_id:t.account_id,date:t.date,amount:amt,payment_mode:"Bank Transfer",reference_number:String(t.description||"").slice(0,90),description:("Payment of "+inv.invoice_number+".").slice(0,100),invoices:[{invoice_id:inv.invoice_id,amount_applied:Math.min(amt,+inv.balance||0)}]}}));
+    const newId=(d.customerpayment&&d.customerpayment.payment_id)||(d.banktransaction&&d.banktransaction.transaction_id)||"";
+    const docs=[{path:"sort/"+id,prev:sortPrev(id)}];
     await chRecord(t,{mode:"invoice",note:inv.invoice_number});
-    chDrop(id); CH.done.unshift({id,text:(t.payee||chName(t.description))+" → "+inv.invoice_number,amt,label:"paid an invoice · "+inv.customer_name});
+    if(amt>=(+inv.balance||0)-0.005){ for(const r of S.reimb.filter(r=>r.invoice_id===inv.invoice_id&&r.status!=="paid")){ const prev={...r}; delete prev.id; docs.push({path:"reimb/"+r.id,prev}); await db.doc("reimb/"+r.id).set({...prev,status:"paid",paidAt:Date.now(),paidBy:id}); } }
+    await zUndoPush({op:"uncat",ids:[newId,id],account_id:t.account_id,label:"payment "+inv.invoice_number,docs});
+    chDrop(id); CH.done.unshift({text:(t.payee||chName(t.description))+" → "+inv.invoice_number,amt,label:"paid an invoice · "+inv.customer_name});
     toast("Payment recorded"); loadZoho(true); renderCharges(); }
   catch(e){ chBusy(id,false); chMsg(id,"Zoho said no: "+((e&&e.message)||"unknown error")+". Nothing was changed."); }
 }
 async function chBulk(){
   if(CH.bulk.running){ CH.bulk.stop=true; return; }
+  const todo=S.txns.filter(t=>chClassify(t).group==="personal"&&!CH_REIMB_LIKE.test((t.payee||"")+" "+(t.description||"")));
   if(!CH.bulk.armed||Date.now()-CH.bulk.armed>6000){ CH.bulk.armed=Date.now(); renderCharges(); setTimeout(()=>{ if(!CH.bulk.running){ CH.bulk.armed=0; renderCharges(); } },6200); return; }
-  const todo=S.txns.filter(t=>chClassify(t).group==="personal"); CH.bulk={running:true,stop:false,armed:0}; CH.open.personal=true; renderCharges();
+  CH.bulk={running:true,stop:false,armed:0}; CH.open.personal=true; renderCharges();
   let ok=0; const st=()=>document.getElementById("ch-status");
   for(const t of todo){ if(CH.bulk.stop) break; if(!(await chPersonal(t.transaction_id,true))){ CH.bulk.stop=true; break; } ok++; if(st()) st().textContent=`Marked ${ok} of ${todo.length} personal…`; await new Promise(r=>setTimeout(r,260)); }
   CH.bulk={running:false,stop:false,armed:0}; renderCharges(); if(st()) st().textContent=`Done: ${ok} marked personal.`;
+}
+
+/* ---------- Reimburse: one tap plus one choice ---------- */
+async function doReimburse(id){
+  const t=chT(id); if(!t||!mcp||!db) return;
+  const c=(S.txns||[]).some(x=>x.transaction_id===id)?chClassify(t):{};
+  let payer=CH.pick.payer!==undefined?CH.pick.payer:payerGuess(t,c), cid="";
+  if(payer==="__other"){ if(!CH.pick.cid){ chMsg(id,"Pick who pays you back (search your Zoho clients)."); return; } payer=CH.pick.cname; cid=CH.pick.cid; }
+  else { const p=PAYERS.find(p=>p.key===payer); if(!p){ chMsg(id,"Pick who pays you back."); return; } cid=p.customer_id; }
+  const status=t.status||"uncategorized";
+  const cat=chCatOf(id)||c.cat||((S.sort[id]||{}).cat)||"";
+  if(status!=="categorized" && !cat){ chMsg(id,"Pick a category first, then Reimburse."); return; }
+  const note=chNote(id), title=(t.payee||chName(t.description))+(note?": "+note:"");
+  const prevR=S.reimb.find(r=>r.id===id); const prevRdoc=prevR?(({id:_,...rest})=>rest)(prevR):null;
+  // 1. reimbursement record first
+  const rdoc={title,amount:+t.amount||0,date:t.date||null,payer,customer_id:cid,status:"open",from:"charges",account_id:t.account_id,txn_id:id,taggedAt:Date.now(),zoho:"saving"};
+  try{ await db.doc("reimb/"+id).set(rdoc); }catch(e){ chMsg(id,"Couldn't save the reimbursement. Nothing was changed."); return; }
+  chBusy(id,true); chMsg(id,"Saving in Zoho…");
+  try{
+    let expId="", undo;
+    if(status==="categorized"){
+      const ex=unwrapZ(await mcp.callTool("Zoho Books","get_expense",{path_variables:{expense_id:id},query_params:{organization_id:ZORG}})).expense;
+      if(!ex) throw new Error("This one isn't an expense in Zoho, so it can't be billed.");
+      const base={date:ex.date,amount:ex.amount,account_id:ex.account_id,paid_through_account_id:ex.paid_through_account_id,description:ex.description||""};
+      zOk(await mcp.callTool("Zoho Books","update_expense",{path_variables:{expense_id:id},query_params:{organization_id:ZORG},body:{...base,customer_id:cid,is_billable:true}}));
+      expId=id; undo={op:"expupd",expense_id:id,prevBody:{...base,customer_id:ex.customer_id||"",is_billable:!!ex.is_billable}};
+    } else {
+      let restored=false;
+      if(status==="excluded"){ zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_restore_bank_transaction",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG,account_id:t.account_id}})); restored=true; }
+      try{
+        const d=zOk(await mcp.callTool("Zoho Books Banking","ZohoBooks_categorize_bank_transaction_as_expense",{path_variables:{transaction_id:id},query_params:{organization_id:ZORG},body:{account_id:cat,paid_through_account_id:t.account_id,date:t.date,amount:+t.amount,description:title.slice(0,100),customer_id:cid,is_billable:true}}));
+        expId=(d.expense&&d.expense.expense_id)||(d.banktransaction&&d.banktransaction.transaction_id)||"";
+      }catch(e){ if(restored) try{ await zohoUndo({op:"exclude",id,account_id:t.account_id}); }catch(_){} throw e; }
+      undo={op:"uncat",ids:[expId,id],account_id:t.account_id,thenExclude:restored};
+    }
+    const sp=sortPrev(id);
+    await db.doc("reimb/"+id).set({...rdoc,zoho:"done",expense_id:expId||"",cat});
+    await chRecord(t,{mode:"file",cat,reimb:payer,note});
+    await zUndoPush({...undo,label:"reimburse "+title,docs:[{path:"reimb/"+id,prev:prevRdoc},{path:"sort/"+id,prev:sp}]});
+    CH.pick=null; chDrop(id); CH.done.unshift({text:title,amt:t.amount,label:"reimburse from "+payer+(cat?" · "+chCat(cat):"")});
+    if(S.alltx){ const x=S.alltx.find(x=>x.transaction_id===id); if(x){ x.status="categorized"; x.offset_account_name=chCat(cat)||x.offset_account_name; } }
+    toast("Added to Reimbursements: "+payer); renderCharges();
+  }catch(e){
+    try{ if(prevRdoc) await db.doc("reimb/"+id).set(prevRdoc); else await db.doc("reimb/"+id).delete(); }catch(_){}
+    chBusy(id,false); chMsg(id,"Zoho said no: "+((e&&e.message)||"unknown error")+". Nothing was changed, and the charge is still here.");
+  }
+}
+
+/* ---------- Reimbursements tab ---------- */
+let RBSEL={}; try{ RBSEL=JSON.parse(localStorage.getItem("cc-rbsel")||"{}")||{}; }catch(_){}
+const rbSaveSel=()=>{ try{ localStorage.setItem("cc-rbsel",JSON.stringify(RBSEL)); }catch(_){} };
+let RBPREV=null; // {payer, groups:[{label, items}]}
+const isFalls=r=>/FALLS/i.test((r.title||"")+" "+(r.vendor||""));
+function rbGroupsFor(payer, items){ if(payer!=="NYFA") return [{label:"",items}]; const f=items.filter(isFalls), o=items.filter(r=>!isFalls(r)); return [o.length&&{label:"QAM costs",items:o}, f.length&&{label:"Falls Counsel (separate claim)",items:f}].filter(Boolean); }
+function receiptHTML(r){ if(r.receipt&&safeUrl(r.receipt)) return ` · <a href="${esc(r.receipt)}" target="_blank" rel="noopener">receipt ↗</a>`; if(r.receiptMissing) return ` · <b class="miss">receipt missing</b>`; return ` · receipt: ${SCAN_FILL.toLowerCase()}`; }
+function renderReimb(){
+  const re=document.getElementById("reimb"), all=S.reimb.filter(r=>r.status!=="cancelled");
+  if(!all.length){ re.innerHTML=`<div class="empty">${SVG.calm}<span>Nothing to claim. Tap Reimburse on any charge in Sort and it lands here.</span></div>`; return; }
+  const by={}; all.forEach(r=>{ (by[r.payer||"Not tagged"]=by[r.payer||"Not tagged"]||[]).push(r); });
+  let h="";
+  Object.keys(by).sort().forEach(p=>{
+    const list=by[p].slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+    const open=list.filter(r=>r.status==="open"), claimed=list.filter(r=>r.status==="claimed"), paid=list.filter(r=>r.status==="paid"&&Date.now()-(r.paidAt||0)<60*864e5);
+    const picked=open.filter(r=>RBSEL[r.id]!==false), tot=a=>a.reduce((s,r)=>s+(+r.amount||0),0);
+    h+=`<div class="sub-h">${esc(p)} · ${money(tot(open)+tot(claimed))} owed</div>`;
+    h+=open.map(r=>`<div class="row a-money" data-reimb="${esc(r.id)}"><div class="ico"><input type="checkbox" data-rbsel="${esc(r.id)}" ${RBSEL[r.id]!==false?"checked":""} aria-label="Include in invoice"></div>
+        <div class="txt"><div class="t">${esc(r.title)} · ${money(+r.amount||0)}</div><div class="s">${esc(shortDate(r.date))}${r.forWhat?" · "+esc(r.forWhat):""}${receiptHTML(r)}${r.zoho==="saving"?" · <b class=\"miss\">Zoho save did not finish</b>":""}${r.expense_id?"":" · not linked to a Zoho expense yet"}</div></div><span></span>
+        <div class="acts">${PAYERS.map(x=>`<button class="act ${r.payer===x.key?"on":""}" type="button" data-payer="${esc(x.key)}">${esc(x.key==="Brigitte Mulholland"?"Brigitte":x.key)}</button>`).join("")}<button class="act no" type="button" data-rbremove="${esc(r.id)}">Not reimbursable</button></div></div>`).join("");
+    if(p!=="Not tagged"&&picked.length) h+=`<div class="adder"><button class="pbtn" type="button" data-rbmake="${esc(p)}">Make invoice · ${picked.length} · ${money(tot(picked))}</button></div>`;
+    if(RBPREV&&RBPREV.payer===p) h+=rbPreviewHTML();
+    if(claimed.length) h+=`<div class="note">Claimed, waiting for payment: ${[...new Set(claimed.map(r=>r.invoice_number||"invoice"))].map(esc).join(", ")} · ${money(tot(claimed))}</div>`;
+    if(paid.length) h+=`<div class="note">Paid in the last 60 days: ${money(tot(paid))} (${paid.length} item${paid.length===1?"":"s"})</div>`;
+  });
+  const claims=S.claims.filter(c=>c.status!=="sent"||Date.now()-(c.ts||0)<30*864e5);
+  if(claims.length) h+=`<div class="sub-h">NYFA claim packets</div>`+claims.map(c=>`<div class="row a-money"><div class="ico">${SVG.doc}</div><div class="txt"><div class="t">${esc(c.invoice_number||"Claim")} · ${money(+c.total||0)}${c.label?" · "+esc(c.label):""}</div>
+      <div class="s">${esc({queued:"Packet queued: the morning pass builds it, or build it now",building:"Building",blocked:"Not ready: missing receipts",ready:"Ready",sent:"Sent"}[c.status]||c.status)}${c.driveUrl&&safeUrl(c.driveUrl)?` · <a href="${esc(c.driveUrl)}" target="_blank" rel="noopener">packet ↗</a>`:""}</div>
+      ${(c.missing||[]).length?`<div class="s miss">Missing: ${c.missing.map(esc).join(", ")}</div>`:""}${c.note?`<details class="why"><summary>Note to paste</summary><pre class="fu">${esc(c.note)}</pre></details>`:""}</div><span></span>
+      <div class="acts"><a class="act go" href="${esc(NEW_CHAT+encodeURIComponent(claimBrief(c)))}" target="_blank" rel="noopener">Build packet now</a>${(c.missing||[]).length&&c.status==="blocked"?`<button class="act" type="button" data-claimgo="${esc(c.id)}">Go without them</button>`:""}</div></div>`).join("");
+  h+=`<div class="note">Make invoice bills the ticked Zoho expenses to that payer (Zoho marks them invoiced). Preview first, then Send now or Save as draft; either way the items move to Claimed. For NYFA it also queues the claim packet: one PDF, a cover page listing every line, then each receipt with its American Express row. Falls Counsel costs go on their own claim.</div>`;
+  re.innerHTML=h;
+}
+function claimBrief(c){ return `NYFA claim\n\nZoho invoice ${c.invoice_number||""} (${money(+c.total||0)})${c.label?", "+c.label:""}. Lines:\n${(c.items||[]).map(i=>`- ${i.date||""} · ${i.title} · ${money(+i.amount||0)}`).join("\n")}\n\nBuild the claim packet per the NYFA claim rules: one PDF, cover page listing every line with what it was for and the amount, totaling the invoice; then one page per charge with the receipt and the matching American Express row. Never fill a gap with a note: list every missing receipt or Amex image by name. File it in QAM > 02 Funding and give me the note to paste. Then update claims/${c.id} on the Command Center page with status, missing and driveUrl.`; }
+function rbPreviewHTML(){ const P=RBPREV;
+  return `<div class="ivprev">${P.groups.map(g=>`<div class="sub-h" style="border-top:0;padding-left:0">${esc(g.label||("Invoice to "+P.payer))}</div>${g.items.map(r=>`<div class="ivl"><span>${esc(shortDate(r.date))} · ${esc(r.title)}${r.expense_id?"":" (not linked to a Zoho expense)"}</span><b>${money(+r.amount||0)}</b></div>`).join("")}<div class="ivl tot"><span>Total</span><b>${money(g.items.reduce((s,r)=>s+(+r.amount||0),0))}</b></div>`).join("")}
+    <div class="adder" style="padding-left:0"><button class="pbtn" type="button" data-rbcreate="send" ${P.busy?"disabled":""}>Send now</button><button class="act" type="button" data-rbcreate="draft" ${P.busy?"disabled":""}>Save as draft</button><button class="act" type="button" data-rbcreate="cancel">Cancel</button></div>
+    ${P.status?`<div class="note">${esc(P.status)}</div>`:""}</div>`; }
+async function rbCreate(mode){
+  const P=RBPREV; if(!P||P.busy||!mcp) return; P.busy=true; P.status="Working…"; renderReimb();
+  const payerObj=PAYERS.find(x=>x.key===P.payer); let made=0, failed=0;
+  for(const g of P.groups){
+    const cid=payerObj?payerObj.customer_id:(g.items.find(r=>r.customer_id)||{}).customer_id;
+    if(!cid){ failed++; continue; }
+    try{
+      const body={customer_id:cid,date:ymd(TODAY()),reference_number:(P.payer==="NYFA"?"NYFA claim":"Reimbursement")+(g.label?" · "+g.label:""),
+        line_items:g.items.map(r=>{ const li={item_id:REIMB_ITEM,name:"Reimbursement",description:`${r.date||""} ${r.title}`.trim().slice(0,2000),rate:+r.amount||0,quantity:1}; if(r.expense_id) li.expense_id=r.expense_id; return li; })};
+      const res=await mcp.callTool("Zoho Books","create_invoice",{query_params:{organization_id:ZORG,send:mode==="send"},body});
+      const inv=unwrapZ(res).invoice||{}; if(!inv.invoice_id) throw new Error("no invoice came back");
+      const docs=[];
+      for(const r of g.items){ const prev={...r}; delete prev.id; docs.push({path:"reimb/"+r.id,prev}); await db.doc("reimb/"+r.id).set({...prev,status:"claimed",invoice_id:inv.invoice_id,invoice_number:inv.invoice_number||"",claimedAt:Date.now()}); }
+      if(P.payer==="NYFA"){ const cdoc={invoice_id:inv.invoice_id,invoice_number:inv.invoice_number||"",label:g.label||"",total:g.items.reduce((s,r)=>s+(+r.amount||0),0),items:g.items.map(r=>({id:r.id,date:r.date,title:r.title,amount:r.amount,expense_id:r.expense_id||""})),status:"queued",ts:Date.now()};
+        await db.doc("claims/"+inv.invoice_id).set(cdoc); docs.push({path:"claims/"+inv.invoice_id,prev:null}); }
+      await zUndoPush({op:"delinv",invoice_id:inv.invoice_id,label:"invoice "+(inv.invoice_number||""),docs});
+      made++;
+    }catch(e){ failed++; P.err=(e&&e.message)||"Zoho refused it"; }
+  }
+  P.busy=false;
+  if(made&&!failed){ RBPREV=null; toast(mode==="send"?"Invoice sent from Zoho":"Draft invoice saved in Zoho"); loadZoho(true); }
+  else P.status=made?`${made} invoice made, ${failed} failed (${P.err||"Zoho refused it"}). The failed items stay here.`:`Zoho didn't accept that (${P.err||"no customer"}). Nothing was created.`;
+  renderReimb();
+}
+async function rbSetPayer(id, payer){
+  const r=S.reimb.find(x=>x.id===id); if(!r) return; const p=PAYERS.find(x=>x.key===payer); if(!p) return;
+  const prev={...r}; delete prev.id;
+  if(r.expense_id&&mcp){
+    try{ const ex=unwrapZ(await mcp.callTool("Zoho Books","get_expense",{path_variables:{expense_id:r.expense_id},query_params:{organization_id:ZORG}})).expense;
+      const base={date:ex.date,amount:ex.amount,account_id:ex.account_id,paid_through_account_id:ex.paid_through_account_id,description:ex.description||""};
+      zOk(await mcp.callTool("Zoho Books","update_expense",{path_variables:{expense_id:r.expense_id},query_params:{organization_id:ZORG},body:{...base,customer_id:p.customer_id,is_billable:true}}));
+      await db.doc("reimb/"+id).set({...prev,payer,customer_id:p.customer_id});
+      await zUndoPush({op:"expupd",expense_id:r.expense_id,prevBody:{...base,customer_id:ex.customer_id||"",is_billable:!!ex.is_billable},label:"payer "+r.title,docs:[{path:"reimb/"+id,prev}]});
+      toast("Payer changed in Zoho too");
+    }catch(e){ toast("Zoho didn't accept the new payer. Nothing changed."); }
+  } else dbWrite("reimb/"+id,{payer,customer_id:p.customer_id},r.title,true).then(ok=>ok&&toast("Payer: "+payer));
+}
+async function rbRemove(id){
+  const r=S.reimb.find(x=>x.id===id); if(!r) return; const prev={...r}; delete prev.id;
+  if(r.expense_id&&mcp){
+    try{ const ex=unwrapZ(await mcp.callTool("Zoho Books","get_expense",{path_variables:{expense_id:r.expense_id},query_params:{organization_id:ZORG}})).expense;
+      const base={date:ex.date,amount:ex.amount,account_id:ex.account_id,paid_through_account_id:ex.paid_through_account_id,description:ex.description||""};
+      zOk(await mcp.callTool("Zoho Books","update_expense",{path_variables:{expense_id:r.expense_id},query_params:{organization_id:ZORG},body:{...base,customer_id:"",is_billable:false}}));
+      await db.doc("reimb/"+id).set({...prev,status:"cancelled"});
+      await zUndoPush({op:"expupd",expense_id:r.expense_id,prevBody:{...base,customer_id:ex.customer_id||"",is_billable:!!ex.is_billable},label:"not reimbursable "+r.title,docs:[{path:"reimb/"+id,prev}]});
+      toast("No longer billable in Zoho");
+    }catch(e){ toast("Zoho didn't accept that. Nothing changed."); }
+  } else dbWrite("reimb/"+id,{status:"cancelled"},r.title,true);
+}
+
+/* ---------- Owed to you ---------- */
+function renderOwed(){
+  const ow=document.getElementById("owed"); let h="";
+  if(S.errors.invoices) h+=`<div class="empty err">Couldn't load invoices from Zoho.</div>`;
+  else if(!S.invoices) h+=`<div class="empty">Loading invoices…</div>`;
+  else{
+    const inv=S.invoices.filter(i=>(+i.balance||0)>0||i.status==="draft").slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")), sum=inv.filter(i=>i.status!=="draft").reduce((s,i)=>s+(+i.balance||0),0);
+    h+=`<div class="sub-h">Invoices · ${money(sum)} sent and unpaid</div>`+(inv.length?inv.map(i=>{ const draft=i.status==="draft", days=i.date&&!draft?-daysUntil(i.date):null, over=!draft&&i.due_date&&daysUntil(i.due_date)<0, fu=S.followups.find(f=>f.id===i.invoice_id);
+      const gm=fu?"https://mail.google.com/mail/?authuser=sean@seanfader.com&view=cm&fs=1"+(fu.to?"&to="+encodeURIComponent(fu.to):"")+"&su="+encodeURIComponent(fu.subject||"")+"&body="+encodeURIComponent(fu.body||""):"";
+      return `<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(i.customer_name)} · ${money(+i.balance||+i.total||0)}</div>
+        <div class="s">${esc(i.invoice_number||"")}${draft?" · <b class=\"miss\">draft, not sent</b>":(i.date?" · sent "+esc(shortDate(i.date)):"")}${days!==null?" · "+days+" days out":""}</div>
+        ${days>=30?(fu?`<details class="why"><summary>Follow-up drafted</summary><pre class="fu">${esc(fu.body||"")}</pre><a class="act go" href="${esc(gm)}" target="_blank" rel="noopener">Open in Gmail</a></details>`:`<div class="s">Follow-up: ${SCAN_FILL.toLowerCase()}</div>`):""}</div>
+        <span class="when ${over?"hot":""}">${draft?"draft":(over?"overdue":(i.due_date?"due "+esc(shortDate(i.due_date)):""))}</span></div>`; }).join(""):`<div class="empty">${SVG.calm}<span>No open invoices.</span></div>`);
+  }
+  const by={}; S.reimb.filter(r=>r.payer&&r.status!=="cancelled").forEach(r=>{ (by[r.payer]=by[r.payer]||{open:[],claimed:[],paid:[]})[r.status==="paid"?"paid":r.status==="claimed"?"claimed":"open"].push(r); });
+  const tot=a=>a.reduce((s,r)=>s+(+r.amount||0),0);
+  h+=`<div class="sub-h">Reimbursements</div>`+(Object.keys(by).length?Object.keys(by).map(p=>{ const b=by[p];
+      return `<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(p)} · ${money(tot(b.open)+tot(b.claimed))} owed</div><div class="s">waiting to invoice ${money(tot(b.open))} · claimed ${money(tot(b.claimed))}${b.claimed.length?" ("+[...new Set(b.claimed.map(r=>r.invoice_number||"invoice"))].map(esc).join(", ")+")":""} · paid ${money(tot(b.paid))}</div></div><span></span></div>`; }).join(""):`<div class="empty">Nothing tagged for reimbursement.</div>`);
+  const ex=S.expected.filter(x=>x.status!=="invoiced"&&x.status!=="dismissed");
+  h+=`<div class="sub-h">Expected, not invoiced yet</div>`+(ex.length?ex.map(x=>`<div class="row a-money" data-exp="${esc(x.id)}"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(x.client||"")}${x.amount?" · "+money(x.amount):""}</div><div class="s">${esc(x.what||"")}${x.src&&safeUrl(x.src.url)?` · <a href="${esc(x.src.url)}" target="_blank" rel="noopener">email ↗</a>`:""}</div></div><span></span>
+      <div class="acts"><button class="act go" type="button" data-expinv="${esc(x.id)}">Make invoice</button><button class="act no" type="button" data-expno="${esc(x.id)}">Not owed</button></div></div>`).join(""):`<div class="empty">Talk fees, fellowship installments and photo jobs found in email. ${SCAN_FILL}</div>`);
+  ow.innerHTML=h;
 }
 
 /* Invoice: pick an existing Zoho client first; several lines; preview; draft only. */
@@ -1138,7 +1320,7 @@ function ivTotal(){ return IV.lines.reduce((s,l)=>s+(parseFloat(l.rate)||0)*(par
 function renderInvoice(){
   const el=document.getElementById("invoice"); if(!el) return;
   if(el.contains(document.activeElement)&&document.activeElement.matches("input,textarea")) return;
-  const items=S.zitems||[], cs=S.contacts||[], q=IV.q.toLowerCase();
+  const items=S.zitems||[], cs=S.zclients||[], q=IV.q.toLowerCase();
   const matches=q?cs.filter(c=>(c.contact_name||"").toLowerCase().includes(q)||(c.email||"").toLowerCase().includes(q)).slice(0,8):[];
   const itemOpts=sel=>`<option value="">What it is for</option>`+items.map(i=>`<option value="${esc(i.item_id)}"${sel===i.item_id?" selected":""}>${esc(i.name)}</option>`).join("");
   if(IV.step==="preview"){
@@ -1146,54 +1328,61 @@ function renderInvoice(){
     el.innerHTML=`<div class="sub-h">Preview · draft only</div><div class="ivprev"><div><b>${esc(who)}</b>${IV.newClient?" (new client)":""}</div>
       ${IV.lines.map(l=>{ const it=items.find(i=>i.item_id===l.item); return `<div class="ivl"><span>${esc(it?it.name:"")}${l.desc?" · "+esc(l.desc):""} × ${esc(String(l.qty))}</span><b>${money((parseFloat(l.rate)||0)*(parseFloat(l.qty)||0))}</b></div>`; }).join("")}
       <div class="ivl tot"><span>Total${IV.due?" · due "+esc(shortDate(IV.due)):""}</span><b>${money(ivTotal())}</b></div></div>
-      <div class="adder"><button class="pbtn" type="button" data-iv="create" ${IV.busy?"disabled":""}>Create draft in Zoho</button><button class="act" type="button" data-iv="back">Edit</button></div>
-      <div class="note">${esc(IV.status||"Nothing is sent. You review and send it from Zoho.")}</div>`;
+      <div class="adder"><button class="pbtn" type="button" data-iv="send" ${IV.busy?"disabled":""}>Send now</button><button class="act" type="button" data-iv="create" ${IV.busy?"disabled":""}>Save as draft</button><button class="act" type="button" data-iv="back">Edit</button></div>
+      <div class="note">${esc(IV.status||"Send now emails it from Zoho to the client. Save as draft sends nothing.")}</div>`;
     return;
   }
   el.innerHTML=`<div class="sub-h">Client</div>
     ${IV.client?`<div class="adder"><span class="ivchip">${esc(IV.client.contact_name)}${IV.client.email?" · "+esc(IV.client.email):""}</span><button class="act" type="button" data-iv="unpick">Change</button></div>`
     :IV.newClient?`<div class="adder" style="flex-direction:column;align-items:stretch"><input type="text" data-ivf="name" value="${esc(IV.name)}" placeholder="New client name" aria-label="Client name"><input type="email" data-ivf="email" value="${esc(IV.email)}" placeholder="Client email" aria-label="Client email"><button class="act" type="button" data-iv="search">Search existing clients instead</button></div>`
-    :`<div class="adder" style="flex-direction:column;align-items:stretch"><input type="search" data-ivf="q" value="${esc(IV.q)}" placeholder="${S.contacts?"Search your Zoho clients":"Loading your Zoho clients…"}" aria-label="Search clients">
+    :`<div class="adder" style="flex-direction:column;align-items:stretch"><input type="search" data-ivf="q" value="${esc(IV.q)}" placeholder="${S.zclients?"Search your Zoho clients":"Loading your Zoho clients…"}" aria-label="Search clients">
       <div class="ivres">${matches.map(c=>`<button class="act" type="button" data-ivpick="${esc(c.contact_id)}">${esc(c.contact_name)}${c.email?" · "+esc(c.email):""}</button>`).join("")}${q&&!matches.length?`<span class="s">No client called that.</span>`:""}</div>
       <button class="act" type="button" data-iv="new">New client</button></div>`}
     <div class="sub-h">Lines</div>
     ${IV.lines.map((l,i)=>`<div class="ivline"><select data-ivl="${i}" data-k="item" aria-label="Item">${itemOpts(l.item)}</select><input type="text" data-ivl="${i}" data-k="desc" value="${esc(l.desc)}" placeholder="Description" aria-label="Description"><input type="number" data-ivl="${i}" data-k="qty" value="${esc(String(l.qty))}" min="0" step="1" aria-label="Quantity" style="width:70px"><input type="number" data-ivl="${i}" data-k="rate" value="${esc(String(l.rate))}" min="0" step="0.01" placeholder="Rate" aria-label="Rate" style="width:110px">${IV.lines.length>1?`<button class="act no" type="button" data-ivdel="${i}" aria-label="Remove line">✕</button>`:""}</div>`).join("")}
     <div class="adder"><button class="act" type="button" data-iv="add">Add a line</button><label class="s">Due <input type="date" data-ivf="due" value="${esc(IV.due)}" aria-label="Due date"></label></div>
     <div class="adder"><button class="pbtn" type="button" data-iv="preview">Preview</button><span class="s">Total ${money(ivTotal())}</span></div>
-    <div class="note">${esc(IV.status||"Draft only. Nothing is sent until you send it from Zoho.")}</div>`;
+    <div class="note">${esc(IV.status||"Preview first. Nothing is sent until you tap Send now.")}</div>`;
 }
 async function ivLoadContacts(){
-  if(S.contacts||!mcp) return;
+  if(S.zclients||!mcp) return;
+  if(S.zclientsP) return S.zclientsP;
+  S.zclientsP=(async()=>{
   try{ const all=[]; for(let page=1;page<=5;page++){ const r=await mcp.callTool("Zoho Books","list_contacts",{query_params:{organization_id:ZORG,contact_type:"customer",per_page:200,page}},{cache:{staleTime:600000,gcTime:86400000}});
       const d=(r.payload&&(r.payload.data||r.payload))||{}; all.push(...(d.contacts||[])); if(!(d.page_context&&d.page_context.has_more_page)) break; }
-    S.contacts=all; }catch(e){ S.contacts=[]; }
-  renderInvoice();
+    S.zclients=all; }catch(e){ S.zclients=[]; }
+  S.zclientsP=null; renderInvoice(); renderCharges();
+  })(); return S.zclientsP;
 }
-async function ivCreate(){
+async function ivCreate(send){
   if(!mcp||IV.busy) return; IV.busy=true; IV.status="Working…"; renderInvoice();
   let cid=IV.client&&IV.client.contact_id, added=false;
   try{
     if(!cid){ const parts=IV.name.trim().split(/\s+/), body={contact_name:IV.name.trim(),contact_type:"customer"};
       if(IV.email){ const p={first_name:parts[0],email:IV.email.trim(),is_primary_contact:true}; if(parts.length>1) p.last_name=parts.slice(1).join(" "); body.contact_persons=[p]; }
       const c=await mcp.callTool("Zoho Books","create_contact",{query_params:{organization_id:ZORG},body}); const cp=c.payload||{}, contact=(cp.data&&cp.data.contact)||cp.contact||{};
-      if(!contact.contact_id) throw {code:"tool_error"}; cid=contact.contact_id; added=true; S.contacts=null; }
+      if(!contact.contact_id) throw {code:"tool_error"}; cid=contact.contact_id; added=true; S.zclients=null; }
     const inv={customer_id:cid,date:ymd(TODAY()),line_items:IV.lines.filter(l=>l.item&&parseFloat(l.rate)>0).map(l=>{ const li={item_id:l.item,rate:parseFloat(l.rate),quantity:parseFloat(l.qty)||1}; if(l.desc) li.description=l.desc; return li; })};
     if(IV.due) inv.due_date=IV.due;
-    const r=await mcp.callTool("Zoho Books","create_invoice",{query_params:{organization_id:ZORG,send:false},body:inv}); const rp=r.payload||{}, invoice=(rp.data&&rp.data.invoice)||rp.invoice||{};
+    const r=await mcp.callTool("Zoho Books","create_invoice",{query_params:{organization_id:ZORG,send:!!send},body:inv}); const rp=r.payload||{}, invoice=(rp.data&&rp.data.invoice)||rp.invoice||{};
     if(!invoice.invoice_id) throw {code:"tool_error"};
+    await zUndoPush({op:"delinv",invoice_id:invoice.invoice_id,label:"invoice "+(invoice.invoice_number||""),docs:IV.expId?[{path:"expected/"+IV.expId,prev:(({id,...r})=>r)(S.expected.find(x=>x.id===IV.expId)||{})}]:[]});
     if(IV.expId&&db) try{ await db.doc("expected/"+IV.expId).set({...(S.expected.find(x=>x.id===IV.expId)||{}),status:"invoiced",invoice:invoice.invoice_number||""}); }catch(e){}
-    const msg=`Draft invoice ${invoice.invoice_number||""} for ${money(ivTotal())} is in Zoho. Review and send it there.`;
+    const msg=send?`Invoice ${invoice.invoice_number||""} for ${money(ivTotal())} was sent from Zoho.`:`Draft invoice ${invoice.invoice_number||""} for ${money(ivTotal())} is saved in Zoho. Send it from here or from Zoho.`;
     IV={q:"",client:null,newClient:false,name:"",email:"",lines:[{item:"",desc:"",rate:"",qty:1}],due:"",step:"edit",status:msg,busy:false,expId:null}; loadZoho(true);
   }catch(err){ IV.busy=false; IV.status=err&&err.code==="approval_required"?"Allow Zoho Books for this page, then try again.":added?"The client was added, but the invoice didn't go through. Draft it in Zoho, or ask Claude.":"Zoho didn't accept that. Nothing was created."; }
   IV.busy=false; renderInvoice();
 }
 function ivClick(e){
   const b=e.target.closest("[data-iv],[data-ivpick],[data-ivdel],[data-expinv],[data-expno]"); if(!b) return false; const d=b.dataset;
-  if(d.expinv){ const x=S.expected.find(y=>y.id===d.expinv); if(!x) return true; const c=(S.contacts||[]).find(c=>(c.contact_name||"").toLowerCase()===(x.client||"").toLowerCase());
-    IV={...IV,client:c||null,newClient:!c,name:c?"":(x.client||""),q:"",lines:[{item:"",desc:x.what||"",rate:x.amount||"",qty:1}],step:"edit",status:"",expId:x.id};
-    document.querySelector('#money-tabs [data-tab="invoice"]').click(); ivLoadContacts(); renderInvoice(); return true; }
+  if(d.expinv){ const x=S.expected.find(y=>y.id===d.expinv); if(!x) return true;
+    document.querySelector('#money-tabs [data-tab="invoice"]').click();
+    ivLoadContacts().then(()=>{ const n=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim(), want=n(x.client);
+      const c=(S.zclients||[]).find(c=>n(c.contact_name)===want)||(S.zclients||[]).find(c=>want&&(n(c.contact_name).includes(want)||want.includes(n(c.contact_name))));
+      IV={...IV,client:c||null,newClient:false,name:"",q:c?"":(x.client||""),lines:[{item:"",desc:x.what||"",rate:x.amount||"",qty:1}],step:"edit",status:c?"":"No exact client match. Pick one below, or add a new client.",expId:x.id};
+      renderInvoice(); }); return true; }
   if(d.expno){ dbWrite("expected/"+d.expno,{status:"dismissed"},"expected income",true); return true; }
-  if(d.ivpick){ IV.client=(S.contacts||[]).find(c=>c.contact_id===d.ivpick)||null; IV.newClient=false; }
+  if(d.ivpick){ IV.client=(S.zclients||[]).find(c=>c.contact_id===d.ivpick)||null; IV.newClient=false; }
   else if(d.ivdel){ IV.lines.splice(+d.ivdel,1); }
   else if(d.iv==="new"){ IV.newClient=true; IV.name=IV.q; }
   else if(d.iv==="search"){ IV.newClient=false; }
@@ -1201,7 +1390,8 @@ function ivClick(e){
   else if(d.iv==="add"){ IV.lines.push({item:"",desc:"",rate:"",qty:1}); }
   else if(d.iv==="preview"){ if(!IV.client&&!(IV.newClient&&IV.name.trim())){ IV.status="Pick a client, or add a new one."; } else if(!IV.lines.some(l=>l.item&&parseFloat(l.rate)>0)){ IV.status="Add at least one line with an item and a rate."; } else { IV.step="preview"; IV.status=""; } }
   else if(d.iv==="back"){ IV.step="edit"; }
-  else if(d.iv==="create"){ ivCreate(); return true; }
+  else if(d.iv==="create"){ ivCreate(false); return true; }
+  else if(d.iv==="send"){ ivCreate(true); return true; }
   renderInvoice(); return true;
 }
 function ivInput(e){
@@ -1209,6 +1399,7 @@ function ivInput(e){
   if(t.dataset.ivl!==undefined){ IV.lines[+t.dataset.ivl][t.dataset.k]=t.value; return true; }
   return false;
 }
+
 function renderPersonal(){
   const open=openItems("personal"), el=document.getElementById("personal-items");
   if(!open.length){ el.innerHTML=`<div class="empty">${SVG.calm}<span>Nothing open.</span></div>`; return; }
@@ -1243,7 +1434,7 @@ function route(){
   renderChips(); window.scrollTo(0,0);
   const toNow=(sid,tid,start,end)=>{ const sc=document.getElementById(sid), tl=document.getElementById(tid); sc.scrollLeft=Math.max(0, tl.offsetWidth*((TODAY()-start)/(end-start))-60); };
   if(r==="qam") toNow("tl-scroll","tl",TL_START(),TL_END());
-  if(r==="teaching") toNow("nyu-scroll","nyu-tl",addDays(TODAY(),-14),new Date(2027,4,31,12));
+  if(r==="teaching") toNow("nyu-scroll","nyu-tl",addDays(TODAY(),-14),TL_END());
 }
 window.addEventListener("hashchange", route);
 function wireTabs(id){
@@ -1257,45 +1448,54 @@ function wireTabs(id){
 }
 
 let toastT; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2800); }
-let busy=false;
+let QUEUE=Promise.resolve();
+function enqueue(fn){ const p=QUEUE.then(fn,fn); QUEUE=p.catch(()=>{}); return p; }
 const clean = o => { if(!o) return null; const c={...o}; delete c.id; return c; };
 async function pushUndo(entry){
   await db.collection("undo").doc().set({...entry, ts:Date.now()});
   for(const u of S.undo.slice(29)){ try{ await db.doc("undo/"+u.id).delete(); }catch(_){} }
 }
 function currentDoc(col,id){ return ({state:S.state[id],pipeline:S.pipeline[id],sort:S.sort[id]})[col] || (S[col]&&Array.isArray(S[col])?S[col].find(x=>x.id===id):null); }
-async function dbWrite(path, data, label, merge){
-  if(!db||busy) return false; busy=true;
-  const [col,id]=path.split("/"), prev=clean(currentDoc(col,id));
-  try{ await db.doc(path).set(merge&&prev?{...prev,...data}:data); await pushUndo({type:"db",path,prev,label}); busy=false; return true; }
-  catch(e){ busy=false; toast("Couldn't save that. Try again."); return false; }
+function dbWrite(path, data, label, merge, quiet){
+  if(!db) return Promise.resolve(false);
+  return enqueue(async()=>{
+    const [col,id]=path.split("/"), prev=clean(currentDoc(col,id));
+    try{ await db.doc(path).set(merge&&prev?{...prev,...data}:data); await pushUndo({type:"db",path,prev,label}); return true; }
+    catch(e){ if(!quiet) toast("Couldn't save that. Try again."); return false; }
+  });
 }
 async function setItemState(id, s, until){
   const it=S.items.find(x=>x.id===id)||S.waiting.find(x=>x.id===id)||{};
   if(await dbWrite("state/"+id,{s,until:until||null,ts:Date.now(),title:it.title||"",area:it.area||"",kind:it.kind||""},it.title||"",false))
     toast({done:"Checked off. It won't come back.",wrong:"Gone for good",snoozed:"Snoozed until "+longDate(until)}[s]);
 }
-async function undoLast(){
-  if(!db||busy||!S.undo.length) return; busy=true; const u=S.undo[0];
-  try{
-    if(u.type==="db"){ if(u.prev) await db.doc(u.path).set(u.prev); else await db.doc(u.path).delete(); }
-    else if(u.type==="airtable"&&mcp){ await mcp.callTool("Airtable","update_records_for_table",{baseId:BASE,tableId:u.table,records:[{id:u.rec,fields:u.prev}]}); }
-    await db.doc("undo/"+u.id).delete(); toast("Undone: "+(u.label||"last change"));
-  }catch(e){ toast("Couldn't undo that one."); }
-  busy=false; if(u.type==="airtable") loadAirtable(true);
+function undoLast(){
+  if(!db||!S.undo.length) return;
+  return enqueue(async()=>{ const u=S.undo[0]; if(!u) return;
+    try{
+      if(u.type==="db"){ if(u.prev) await db.doc(u.path).set(u.prev); else await db.doc(u.path).delete(); }
+      else if(u.type==="airtable"&&mcp){ await mcp.callTool("Airtable","update_records_for_table",{baseId:BASE,tableId:u.table,records:[{id:u.rec,fields:u.prev}]}); }
+      else if(u.type==="zoho"&&mcp){ await zohoUndo(u); }
+      await db.doc("undo/"+u.id).delete(); toast("Undone: "+(u.label||"last change"));
+    }catch(e){ toast("Couldn't undo that one"+(u.type==="zoho"?". Fix it in Zoho.":".")); }
+    if(u.type==="airtable") loadAirtable(true); if(u.type==="zoho") loadZoho(true);
+  });
 }
-async function airtableUpdate(table, rec, fields, prev, label, ok){
-  if(!mcp||busy) return; busy=true;
-  try{ await mcp.callTool("Airtable","update_records_for_table",{baseId:BASE,tableId:table,records:[{id:rec,fields}]});
-    if(db) await pushUndo({type:"airtable",table,rec,prev,label}); toast(ok); }
-  catch(e){ toast(e&&e.code==="approval_required"?"Allow Airtable for this page first.":"Couldn't update Airtable. Try again."); }
-  busy=false; loadAirtable(true);
+function airtableUpdate(table, rec, fields, prev, label, ok){
+  if(!mcp) return;
+  return enqueue(async()=>{
+    try{ await mcp.callTool("Airtable","update_records_for_table",{baseId:BASE,tableId:table,records:[{id:rec,fields}]});
+      if(db) await pushUndo({type:"airtable",table,rec,prev,label}); toast(ok); }
+    catch(e){ toast(e&&e.code==="approval_required"?"Allow Airtable for this page first.":"Couldn't update Airtable. Try again."); }
+    loadAirtable(true);
+  });
 }
 
 document.addEventListener("click", e=>{
   const b=e.target.closest("[data-do]");
   if(b){ const row=b.closest(".row"), id=row&&row.dataset.id; if(!id) return; const d=b.dataset.do;
     if(d==="snooze"){ const s=row.querySelector(".snz"); s.hidden=!s.hidden; return; }
+    if(d==="more"){ const s=row.querySelector(".morebox"); s.hidden=!s.hidden; return; }
     if(d==="done"||d==="wrong") return setItemState(id,d);
     const until={snz1:addDays(TODAY(),1),snz3:addDays(TODAY(),3),snzThu:nextDow(4),snzMon:nextDow(1)}[d];
     if(until) return setItemState(id,"snoozed",ymd(until));
@@ -1327,27 +1527,34 @@ document.addEventListener("click", e=>{
     dbWrite("pipeline/"+id,{stage:cur.stage||"prospect",pin:!cur.pin,ts:Date.now()},"pin",true).then(ok=>ok&&toast(cur.pin?"Unpinned":"Pinned: must apply this year")); return; }
   if(ivClick(e)) return;
   if(e.target.id==="go-reimb"){ document.querySelector('#money-tabs [data-tab="reimb"]').click(); document.getElementById("money-tabs").scrollIntoView({behavior:"smooth"}); return; }
-  const rbc=e.target.closest("[data-rbclaimed]"); if(rbc){ const p=rbc.dataset.rbclaimed, ids=S.reimb.filter(r=>r.status!=="paid"&&r.status!=="claimed"&&(r.payer||"Not tagged")===p&&RB.sel[r.id]!==false);
-    (async()=>{ for(const r of ids){ await dbWrite("reimb/"+r.id,{status:"claimed",claimedAt:Date.now()},r.title,true); } toast("Marked "+ids.length+" claimed"); })(); return; }
-  const chb=e.target.closest("[data-chfile],[data-chrefund],[data-chper],[data-chpark],[data-chunpark],[data-chforce],[data-chinv],[data-chinvgo],[data-chundo],[data-chautoundo],[data-chtog],[data-chreimb],[data-charea],#ch-bulk"); if(chb){ const ds=chb.dataset;
+  const chb=e.target.closest("[data-chfile],[data-chrefund],[data-chper],[data-chpark],[data-chunpark],[data-chforce],[data-chinv],[data-chinvgo],[data-chautoundo],[data-chtog],[data-chreimb],[data-charea],[data-chview],[data-pkpayer],[data-pkcid],[data-pkgo],[data-pkx],#ch-bulk"); if(chb){ const ds=chb.dataset;
     if(chb.id==="ch-bulk") chBulk(); else if(ds.chtog){ CH.open[ds.chtog]=!CH.open[ds.chtog]; renderCharges(); }
+    else if(ds.chview){ CH.view=ds.chview; CH.pick=null; renderCharges(); }
     else if(ds.chfile) chFile(ds.chfile); else if(ds.chrefund){ CH.refund[ds.chrefund]=!CH.refund[ds.chrefund]; renderCharges(); }
-    else if(ds.chreimb){ const t=CH.tag[ds.chreimb]=CH.tag[ds.chreimb]||{}; t.reimb=t.reimb===ds.v?"":ds.v; if(t.reimb==="NYFA"&&!t.area) t.area="qam"; renderCharges(); }
-    else if(ds.charea){ const t=CH.tag[ds.charea]=CH.tag[ds.charea]||{}; t.area=t.area===ds.v?"":ds.v; renderCharges(); }
+    else if(ds.chreimb){ CH.pick={id:ds.chreimb}; renderCharges(); }
+    else if(ds.pkpayer){ CH.pick={...CH.pick,payer:ds.pkpayer}; if(ds.pkpayer==="__other") ivLoadContacts(); renderCharges(); }
+    else if(ds.pkcid){ CH.pick={...CH.pick,cid:ds.pkcid,cname:ds.pkname}; renderCharges(); }
+    else if(ds.pkgo) doReimburse(ds.pkgo); else if(ds.pkx){ CH.pick=null; renderCharges(); }
+    else if(ds.charea){ const cur=CH.area[ds.charea]; CH.area[ds.charea]=cur===ds.v?"":ds.v; renderCharges(); }
     else if(ds.chper) chPersonal(ds.chper); else if(ds.chpark) chPark(ds.chpark,true); else if(ds.chunpark) chPark(ds.chunpark,false);
     else if(ds.chforce){ CH.force[ds.chforce]=1; CH.open.needs=true; renderCharges(); } else if(ds.chinv) chInvPick(ds.chinv); else if(ds.chinvgo) chInvPay(ds.chinvgo);
-    else if(ds.chundo) chUndo(+ds.chundo); else if(ds.chautoundo) chAutoUndo(ds.chautoundo);
+    else if(ds.chautoundo) chAutoUndo(ds.chautoundo);
     return; }
-  const py=e.target.closest("[data-payer]"); if(py){ const id=py.closest("[data-reimb]").dataset.reimb, r=S.reimb.find(x=>x.id===id);
-    dbWrite("reimb/"+id,{payer:py.dataset.payer,taggedAt:Date.now()},r?r.title:"",true).then(ok=>ok&&toast("Tagged "+py.dataset.payer)); return; }
+  const rbm=e.target.closest("[data-rbmake]"); if(rbm){ const p=rbm.dataset.rbmake, items=S.reimb.filter(r=>r.status==="open"&&(r.payer||"Not tagged")===p&&RBSEL[r.id]!==false).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+    RBPREV={payer:p,groups:rbGroupsFor(p,items),busy:false,status:""}; renderReimb(); return; }
+  const rbc=e.target.closest("[data-rbcreate]"); if(rbc){ const m=rbc.dataset.rbcreate; if(m==="cancel"){ RBPREV=null; renderReimb(); } else rbCreate(m); return; }
+  const rbr=e.target.closest("[data-rbremove]"); if(rbr){ rbRemove(rbr.dataset.rbremove); return; }
+  const cg=e.target.closest("[data-claimgo]"); if(cg){ dbWrite("claims/"+cg.dataset.claimgo,{status:"ready",goWithout:true},"claim",true).then(ok=>ok&&toast("Marked ready without the missing pieces")); return; }
+  const py=e.target.closest("[data-payer]"); if(py){ rbSetPayer(py.closest("[data-reimb]").dataset.reimb, py.dataset.payer); return; }
   if(e.target.id==="att-go") return attendanceGo();
   const cp=e.target.closest("[data-copy]"); if(cp){ const rec=S.attendance.find(a=>a.id===document.getElementById("attend").dataset.doc), d=rec&&rec.drafts&&rec.drafts[+cp.dataset.copy];
     if(d) navigator.clipboard.writeText((d.subject?"Subject: "+d.subject+"\n\n":"")+d.body).then(()=>toast("Copied")).catch(()=>toast("Select the text to copy it")); return; }
   const p=e.target.closest(".person"); if(p&&!e.target.closest("a")) p.classList.toggle("open");
 });
-document.addEventListener("change", e=>{ if(e.target.dataset&&e.target.dataset.rbsel){ RB.sel[e.target.dataset.rbsel]=e.target.checked; renderReimb(); return; } if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); }
+document.addEventListener("change", e=>{ if(e.target.dataset&&e.target.dataset.rbsel){ RBSEL[e.target.dataset.rbsel]=e.target.checked; rbSaveSel(); renderReimb(); return; } if(e.target.id==="att-class"){ attClass=e.target.value; renderAttendance(); }
 });
-document.addEventListener("input", e=>{ if(ivInput(e)) return; if(e.target.id==="ch-q"){ CH.q=e.target.value; const pos=e.target.selectionStart; renderCharges(); const n=document.getElementById("ch-q"); n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } });
+document.addEventListener("input", e=>{ if(ivInput(e)) return;
+  if(e.target.dataset&&e.target.dataset.pkq!==undefined){ CH.pick={...CH.pick,q:e.target.value}; const pos=e.target.selectionStart, id=e.target.dataset.pkq; e.target.blur(); renderCharges(); const n=document.querySelector(`[data-pkq="${id}"]`); if(n){ n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } return; } if(e.target.id==="ch-q"){ CH.q=e.target.value; const pos=e.target.selectionStart; renderCharges(); const n=document.getElementById("ch-q"); n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } });
 document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("person")){ e.preventDefault(); e.target.classList.toggle("open"); }});
 document.getElementById("undo").addEventListener("click", undoLast);
 document.getElementById("lead-q").addEventListener("input", renderLeads);
@@ -1394,9 +1601,12 @@ document.getElementById("tell-form").addEventListener("submit", async e=>{
 async function loadAirtable(fresh){
   if(!mcp) return;
   const opts={cache:fresh?{refresh:true,staleTime:300000,gcTime:86400000}:{staleTime:300000,gcTime:86400000}};
-  await Promise.all([["contacts",T.contacts,F.c],["funding",T.funding,F.f],["social",T.social,F.s]].map(async([key,table,fields])=>{
-    try{ const res=await mcp.callTool("Airtable","list_records_for_table",{baseId:BASE,tableId:table,fieldIds:Object.values(fields),pageSize:1000},opts);
-      const p=res.payload||{}; S[key]=Array.isArray(p.records)?p.records:[]; delete S.errors[key]; }
+  await Promise.all([["people",T.contacts,F.c],["funding",T.funding,F.f],["social",T.social,F.s]].map(async([key,table,fields])=>{
+    try{ const all=[]; let cursor=null, guard=0;
+      do{ const args={baseId:BASE,tableId:table,fieldIds:Object.values(fields),pageSize:1000}; if(cursor) args.cursor=cursor;
+        const res=await mcp.callTool("Airtable","list_records_for_table",args,opts); const p=res.payload||{};
+        if(Array.isArray(p.records)) all.push(...p.records); cursor=p.nextCursor||null; }while(cursor&&++guard<20);
+      S[key]=all; delete S.errors[key]; }
     catch(e){ S.errors[key]=e||{code:"upstream_error"}; }
   }));
   renderLeads(); renderTeam(); renderStalled(); renderRenewals(); renderApps(); renderSocial();
@@ -1407,7 +1617,7 @@ async function loadZoho(fresh){
   const unwrap=r=>{ const p=r.payload||{}; return p.data||p; };
   await Promise.all([
     mcp.callTool("Zoho Books","list_bank_accounts",{query_params:{organization_id:ZORG,per_page:100,filter_by:"Status.Active"}},opts).then(r=>{S.bank=unwrap(r).bankaccounts||[]; delete S.errors.bank;}).catch(e=>{S.errors.bank=e||{code:"upstream_error"};}),
-    mcp.callTool("Zoho Books","list_invoices",{query_params:{organization_id:ZORG,status:"unpaid",per_page:100}},opts).then(r=>{S.invoices=unwrap(r).invoices||[]; delete S.errors.invoices;}).catch(e=>{S.errors.invoices=e||{code:"upstream_error"};}),
+    Promise.all(["unpaid","draft"].map(st=>mcp.callTool("Zoho Books","list_invoices",{query_params:{organization_id:ZORG,status:st,per_page:200}},opts).then(r=>unwrap(r).invoices||[]))).then(([u,d])=>{ const seen=new Set(); S.invoices=[...u,...d].filter(i=>!seen.has(i.invoice_id)&&seen.add(i.invoice_id)); delete S.errors.invoices;}).catch(e=>{S.errors.invoices=e||{code:"upstream_error"};}),
     mcp.callTool("Zoho Books","list_items",{query_params:{organization_id:ZORG,per_page:100}},opts).then(r=>{S.zitems=(unwrap(r).items||[]).filter(i=>i.can_be_sold!==false); delete S.errors.zitems;}).catch(e=>{S.errors.zitems=e||{code:"upstream_error"};})
   ]);
   await Promise.all([loadTxns(opts), loadCoa(opts)]);
@@ -1441,7 +1651,6 @@ async function refresh(){
   try{ if(trig&&mcp){ await mcp.callTool("Claude Code Remote","fire_trigger",{trigger_id:trig}); toast("Checking email and calendar. New items land in a few minutes."); }
     else toast(trig?"Refreshed. Allow Claude Code Remote to run a check.":"Refreshed. Scans switch on when your Mac is back."); }
   catch(e){ toast(e&&e.code==="approval_required"?"Allow Claude Code Remote to run a check.":"Couldn't start a check. Showing the latest data."); }
-  await Promise.all([loadAirtable(true),loadZoho(true)]);
   btn.classList.remove("spin"); btn.disabled=false;
 }
 document.getElementById("refresh").addEventListener("click", refresh);
@@ -1467,9 +1676,9 @@ function subDoc(path,key){ db.doc(path).onSnapshot(d=>{ S[key]=d.exists?d.data()
   [db,mcp,sample,dict]=await Promise.all(["db","mcp","sample","dictation"].map(n=>c.use(n).catch(()=>null)));
   if(db){
     ["items","state","timeline","goals","cv","briefs","thursday","opps","pipeline","waiting","interfolio","classes","attendance","reimb"].forEach(k=>sub(k,k));
-    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups");
+    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims");
     sub("undo","undo",{order:"ts",dir:"desc",limit:40});
-    subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach");
+    subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach"); subDoc("meta/cards","cards");
   }
   if(dict){
     const mic=document.getElementById("tell-mic"), ta=document.getElementById("tell-text"); mic.hidden=false; let base="";
