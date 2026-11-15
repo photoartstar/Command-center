@@ -138,6 +138,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .bk2status{font-size:12.5px;color:var(--muted);padding:0 14px}
 .bk2row{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 14px;font-size:13px}.bk2row .t{flex:1}.bk2row small{display:block;color:var(--muted)}
 @media (max-width:520px){.bk2meta,.bk2items,.bk2act,.bk2msg,.bk2q{margin-left:0}}
+details.fold{border-top:1px solid var(--line)}details.fold>summary{font:500 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:10px 14px;cursor:pointer}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -671,18 +672,33 @@ function renderRenewals(){
       <span class="when ${due?"hot":""}">${due?"renew now":"at 9 mo"}</span></div>`;}).join("")
     : `<div class="empty">No gifts yet.</div>`;
 }
+const QST=[["Prospect","Prospect"],["Drafting","Drafting"],["Submitted","Applied"],["Awarded","Awarded"],["Declined","Not awarded"],["Not a fit","Not a fit"],["Next year","Next year"]];
+function appRow(r){
+  const dl=cell(r,F.f.deadline), link=safeUrl(cell(r,F.f.link)), amt=cell(r,F.f.amount), st=selName(cell(r,F.f.stage))||"Prospect", pin=(S.pipeline["at-"+r.id]||{}).pin, fb=cell(r,F.f.feedback);
+  const title=cell(r,F.f.opp)||cell(r,F.f.funder)||"Application";
+  const apply=NEW_CHAT+encodeURIComponent(`Apply: ${title} (Queer American Memorials)\n\n${[cell(r,F.f.funder),amt?money(amt):cell(r,F.f.amountNote),dl?"deadline "+dl:null,link].filter(Boolean).join(" · ")}\n\nAirtable Funding record ${r.id}. ${cell(r,F.f.fitWhy)||""}`);
+  return `<div class="row a-qam" data-app="${esc(r.id)}"><div class="ico">${SVG.grant}</div>
+    <div class="txt"><div class="t"><button class="pin ${pin?"on":""}" type="button" data-apppin="1" aria-label="Must apply this year" title="Must apply this year">📌</button>${esc(title)}${fitChip(cell(r,F.f.fit))}</div>
+      <div class="s">${esc(cell(r,F.f.funder)||"")}${amt?" · "+money(amt):(cell(r,F.f.amountNote)?" · "+esc(cell(r,F.f.amountNote)):"")}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(cell(r,F.f.fitWhy),fb?{note:fb}:null)}</div>
+    ${dl?`<span class="when ${whenClass(dl)}">${whenLabel(dl)}</span>`:`<span class="when">rolling</span>`}
+    <div class="acts"><span class="stages">${QST.map(([k,l])=>`<button type="button" class="stg ${st===k?"on":""}" data-appstage="${esc(k)}">${l}</button>`).join("")}</span>
+      ${["Prospect","Drafting","Cultivating"].includes(st)?`<a class="act go" href="${esc(apply)}" target="_blank" rel="noopener">Apply</a>`:""}${st==="Not a fit"&&!fb?`<span class="whyin"><input type="text" data-appwhyin="${esc(r.id)}" placeholder="Why not a fit? (teaches future scans)" aria-label="Why not a fit"><button class="act" type="button" data-appwhysave="${esc(r.id)}">Save</button></span>`:""}</div></div>`;
+}
 function renderApps(){
   const el=document.getElementById("apps");
   if(connErr(el,"funding","Airtable","applications")) return;
   if(!S.funding){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
-  const closed=["Awarded","Declined","Committed","Not a fit","Next year"];
-  const rows=S.funding.filter(r=>!closed.includes(selName(cell(r,F.f.stage))) && !cell(r,F.f.stalled))
-    .sort((a,b)=>(cell(a,F.f.deadline)||"9999").localeCompare(cell(b,F.f.deadline)||"9999"));
-  el.innerHTML = rows.length ? `<div class="sub-h">${rows.length} open</div>`+rows.map(r=>{ const dl=cell(r,F.f.deadline), link=safeUrl(cell(r,F.f.link)), amt=cell(r,F.f.amount);
-    return `<div class="row a-qam"><div class="ico">${SVG.grant}</div>
-      <div class="txt"><div class="t">${esc(cell(r,F.f.opp))}${fitChip(cell(r,F.f.fit))}</div><div class="s">${esc(cell(r,F.f.funder)||"")} · ${esc(selName(cell(r,F.f.stage))||"Prospect")}${amt?" · "+money(amt):(cell(r,F.f.amountNote)?" · "+esc(cell(r,F.f.amountNote)):"")}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>${whyHTML(cell(r,F.f.fitWhy),cell(r,F.f.feedback)?{note:cell(r,F.f.feedback)}:null)}</div>
-      ${dl?`<span class="when ${whenClass(dl)}">${whenLabel(dl)}</span>`:`<span class="when">rolling</span>`}</div>`;}).join("")
-    : `<div class="empty">No open QAM applications.</div>`;
+  const all=S.funding.filter(r=>!cell(r,F.f.stalled)), stg=r=>selName(cell(r,F.f.stage))||"Prospect";
+  const pinOf=r=>!!(S.pipeline["at-"+r.id]||{}).pin;
+  const sortA=(a,b)=>(pinOf(b)-pinOf(a))||(cell(a,F.f.deadline)||"9999").localeCompare(cell(b,F.f.deadline)||"9999");
+  const open=all.filter(r=>["Prospect","Cultivating","Drafting"].includes(stg(r))).filter(r=>!fit7||(+cell(r,F.f.fit)||0)>=7||pinOf(r)||stg(r)!=="Prospect").sort(sortA);
+  const applied=all.filter(r=>stg(r)==="Submitted").sort(sortA);
+  const won=all.filter(r=>["Awarded","Committed"].includes(stg(r))), lost=all.filter(r=>stg(r)==="Declined"), later=all.filter(r=>stg(r)==="Next year"), nofit=all.filter(r=>stg(r)==="Not a fit");
+  const fold=(t,list)=>list.length?`<details class="fold"><summary>${t} · ${list.length}</summary>${list.slice().sort(sortA).map(appRow).join("")}</details>`:"";
+  el.innerHTML=`<div class="adder" style="padding-bottom:0"><button type="button" class="act ${fit7?"on":""}" data-fit7="1">Fit 7+ only</button><span class="s">Stages save to Airtable, so Sam and Maureen see them too.</span></div>`
+    +(open.length?`<div class="sub-h">Open · ${open.length}</div>`+open.map(appRow).join(""):`<div class="empty">${SVG.calm}<span>No open QAM applications.</span></div>`)
+    +(applied.length?`<div class="sub-h">Applied, waiting · ${applied.length}</div>`+applied.map(appRow).join(""):"")
+    +fold("Awarded",won)+fold("Not awarded",lost)+fold("Next year",later)+fold("Not a fit",nofit);
 }
 function renderSocial(){
   const el=document.getElementById("social");
@@ -1166,7 +1182,13 @@ document.addEventListener("click", e=>{
   const st=e.target.closest("[data-stage]"); if(st){ const id=st.closest("[data-opp]").dataset.opp, o=S.opps.find(x=>x.id===id);
     dbWrite("pipeline/"+id,{stage:st.dataset.stage,ts:Date.now(),title:o?o.title:""},o?o.title:"",true).then(ok=>ok&&toast("Moved to "+st.textContent)); return; }
   const ws=e.target.closest("[data-whysave]"); if(ws){ const id=ws.dataset.whysave, inp=document.querySelector(`[data-whyin="${CSS.escape(id)}"]`), v=inp&&inp.value.trim(); if(!v) return; dbWrite("pipeline/"+id,{why:{tags:[],note:v},ts:Date.now()},"reason",true).then(ok=>ok&&toast("Saved. Future scans will skip things like this.")); return; }
-  const f7=e.target.closest("[data-fit7]"); if(f7){ fit7=!fit7; try{ localStorage.setItem("cc-fit7",fit7?"1":"0"); }catch(_){} renderPipeline(); return; }
+  const f7=e.target.closest("[data-fit7]"); if(f7){ fit7=!fit7; try{ localStorage.setItem("cc-fit7",fit7?"1":"0"); }catch(_){} renderPipeline(); renderApps(); return; }
+  const as=e.target.closest("[data-appstage]"); if(as){ const rec=as.closest("[data-app]").dataset.app, r=(S.funding||[]).find(x=>x.id===rec); if(!r) return;
+    return airtableUpdate(T.funding,rec,{[F.f.stage]:as.dataset.appstage},{[F.f.stage]:selName(cell(r,F.f.stage))||null},cell(r,F.f.opp)||"application","Moved to "+as.textContent); }
+  const ap=e.target.closest("[data-apppin]"); if(ap){ const rec=ap.closest("[data-app]").dataset.app, cur=S.pipeline["at-"+rec]||{}, r=(S.funding||[]).find(x=>x.id===rec);
+    dbWrite("pipeline/at-"+rec,{pin:!cur.pin,track:2,title:r?cell(r,F.f.opp)||"":"",ts:Date.now()},"pin",true).then(ok=>ok&&toast(cur.pin?"Unpinned":"Pinned: must apply this year")); return; }
+  const aw=e.target.closest("[data-appwhysave]"); if(aw){ const rec=aw.dataset.appwhysave, inp=document.querySelector(`[data-appwhyin="${CSS.escape(rec)}"]`), v=inp&&inp.value.trim(), r=(S.funding||[]).find(x=>x.id===rec); if(!v||!r) return;
+    return airtableUpdate(T.funding,rec,{[F.f.feedback]:v},{[F.f.feedback]:cell(r,F.f.feedback)||null},"reason","Saved. Future scans will skip things like this."); }
   const pn=e.target.closest("[data-pin]"); if(pn){ const id=pn.closest("[data-opp]").dataset.opp, cur=S.pipeline[id]||{};
     dbWrite("pipeline/"+id,{stage:cur.stage||"prospect",pin:!cur.pin,ts:Date.now()},"pin",true).then(ok=>ok&&toast(cur.pin?"Unpinned":"Pinned: must apply this year")); return; }
   const chb=e.target.closest("[data-chbiz],[data-chqam],[data-chbri],[data-chrefund],[data-chper],[data-chpark],[data-chunpark],[data-chforce],[data-chinv],[data-chinvgo],[data-chundo],[data-chtog],#ch-bulk"); if(chb){ const ds=chb.dataset;
