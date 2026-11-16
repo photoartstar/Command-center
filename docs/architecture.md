@@ -25,7 +25,7 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `cv/<id>` | CV watch suggestions | CV watch (proposes), page (decides) |
 | `briefs/<id>` | Night-before meeting briefings | scan |
 | `meta/config` | `{live, scanTriggerId, refreshTriggerId}`, the on switch (Refresh fires `refreshTriggerId`, the fast scan) | Claude at switch-on |
-| `meta/status` | `{lastScan (epoch ms), failed: [source names]}` | every scan |
+| `meta/status` | `{lastScan, failed: [...], sources: {gmail|nyu|calendar|zoho|airtable|drive|meta: {ts, ok, err}}}` drives the connection health strip | every scan |
 | `thursday/<id>` | For Thursday items `{meeting, text, done, inAgenda}` | page, morning scan |
 | `opps/<slug>` | Practice and job opportunities from the funding feed | morning scan |
 | `pipeline/<slug>` | Sean's stage and pin per opportunity | page only |
@@ -40,6 +40,9 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `expected/<slug>` | Money owed but not invoiced `{client, what, amount, src, status}` | morning scan, page |
 | `claims/<invoiceId>` | NYFA claim packet `{invoice_number, total, items, status: queued|building|blocked|ready|sent, missing, driveUrl, note, goWithout}` | page queues, morning pass builds |
 | `meta/cards` | `{cards: [{name, statementBalance, due, paid}]}` for On track | morning pass |
+| `invpay/<invoiceId>` | Manual Mark paid, incl. partial `{amount, total, ts}` | page |
+| `meta/memorials` | Memorials class: week, guests, projects, readings | morning pass, Claude |
+| `meta/lock` | `{by, ts, until}`: one scan or Refresh at a time | scans |
 | `followups/<invoiceId>` | Drafted 30-day invoice follow-up `{to, subject, body}` | morning scan |
 
 Version 3 of the page (Nov 15) also reads Zoho Books live (bank and card balances, unpaid invoices, items) and can create a customer plus a DRAFT invoice. "Tell Claude" uses the page's `sample` capability to file a typed or dictated note; when that is unavailable it saves the note with `needsFiling: true` for the next scan.

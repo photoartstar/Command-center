@@ -162,6 +162,10 @@ pre.fu{white-space:pre-wrap;font:inherit;font-size:13px;margin:6px 0}
 .seg{display:inline-flex;gap:4px}.miss{color:var(--c-finn);background:color-mix(in srgb,var(--c-pink) 25%,transparent);padding:0 4px;border-radius:4px}
 .morebox{display:inline-flex;gap:6px;flex-wrap:wrap}.act.more{padding-left:10px;padding-right:10px}
 @media (max-width:520px){.pick{margin-left:0}}
+.health{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;width:100%}
+.hchip{font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--sunk);color:var(--ink)}
+.hchip.ok{background:color-mix(in srgb,var(--c-emerald) 22%,var(--surface))}.hchip.off{opacity:.75}
+.hchip.bad{background:var(--c-pink);color:var(--c-finn);font-weight:700}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -297,6 +301,7 @@ details.why .mine{font-style:italic}
       <button class="tbtn" id="refresh" type="button" title="Check email and calendar now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Refresh</button>
     </div>
     <div class="sync"><span class="dot" id="syncdot"></span><span id="synctext">Connecting…</span></div>
+    <div class="health" id="health" aria-label="Connection health"></div>
     <nav class="chips" id="chips" aria-label="Areas"></nav>
   </header>
 
@@ -365,10 +370,10 @@ details.why .mine{font-style:italic}
       <div class="sec" data-pane="apps" hidden><div class="panel" id="apps"></div></div>
       <div class="sec" data-pane="renew" hidden><div class="panel" id="renew"></div></div>
       <div class="sec" data-pane="social" hidden>
-        <div class="sec-h"><h2>Next 7 days</h2><a class="more" href="https://docs.google.com/document/d/11EWbX-JTzrZ3rWBoyiDuM4Szofrc4fuhM8ZUhgZPHDM/edit" target="_blank" rel="noopener">Strategy ↗</a></div>
+        <div class="sec-h"><h2>Next 14 days</h2><a class="more" href="https://docs.google.com/document/d/11EWbX-JTzrZ3rWBoyiDuM4Szofrc4fuhM8ZUhgZPHDM/edit" target="_blank" rel="noopener">Strategy ↗</a></div>
         <div class="panel" id="social"></div>
       </div>
-      <div class="sec" data-pane="team" hidden><div class="panel" id="team"></div></div>
+      <div class="sec" data-pane="team" hidden><input class="filter" id="team-q" type="search" placeholder="Search everyone in the people wiki: name, email, org, keywords"><div class="panel" id="team"></div></div>
       <div class="sec" data-pane="items" hidden><div class="panel" id="qam-items"></div></div>
     </section>
 
@@ -404,7 +409,7 @@ details.why .mine{font-style:italic}
       </div>
       <div class="sec" data-pane="attend"><div class="panel" id="attend"></div></div>
       <div class="sec" data-pane="open" hidden><div class="panel" id="teaching-items"></div></div>
-      <div class="sec" data-pane="memorials" hidden><div class="panel" id="memorials-items"></div></div>
+      <div class="sec" data-pane="memorials" hidden><div class="panel" id="memorials-plan"></div><div class="panel" id="memorials-items" style="margin-top:12px"></div></div>
       <div class="sec" data-pane="interfolio" hidden><div class="panel" id="interfolio"></div></div>
     </section>
 
@@ -437,7 +442,7 @@ details.why .mine{font-style:italic}
 const BASE = "appPeWDhXHErd70GJ", ZORG = "919433010";
 const T = { contacts:"tblQeHggYxmEK7OEY", funding:"tbl6SYnqI4FSrW3LR", social:"tblIE99nz7g8OI68i" };
 const F = {
-  c:{name:"fldFcGjsSHHQtS9VK",org:"fldfJMBk3gS88Gvjt",role:"fldKmv097UC6TSR7O",cat:"flddWf6GaEzeNkF3U",status:"fld9xKfCLEcRsQ91u",owner:"fldZMNz7EwhEe4tzB",last:"fld0eO3OF3k1o5pdR",next:"fldGONS97f5WocRbx",nextDate:"fldxerFrD0al9z3hl",lastConv:"fldol1ArolxdNMXOq",summary:"fld6M1MCRG2k9x5QT",introBy:"fld0fxXvblqbs2RJO",keywords:"fldKt9z1FVnh6D5l9",granola:"flddKI6VHlGrzduqG",threads:"fldUx2izEykWCdPiq",group:"fldUoQFfNDLYF6M5v",connected:"fldiFzu5A99LrckXM"},
+  c:{email:"fldOv7LWH95nGRPcB",name:"fldFcGjsSHHQtS9VK",org:"fldfJMBk3gS88Gvjt",role:"fldKmv097UC6TSR7O",cat:"flddWf6GaEzeNkF3U",status:"fld9xKfCLEcRsQ91u",owner:"fldZMNz7EwhEe4tzB",last:"fld0eO3OF3k1o5pdR",next:"fldGONS97f5WocRbx",nextDate:"fldxerFrD0al9z3hl",lastConv:"fldol1ArolxdNMXOq",summary:"fld6M1MCRG2k9x5QT",introBy:"fld0fxXvblqbs2RJO",keywords:"fldKt9z1FVnh6D5l9",granola:"flddKI6VHlGrzduqG",threads:"fldUx2izEykWCdPiq",group:"fldUoQFfNDLYF6M5v",connected:"fldiFzu5A99LrckXM"},
   f:{opp:"fld1M7RkZyWVd8HYb",funder:"fldXYiip0A4KsvzCL",stage:"fldpr7TFwLGax4M81",amount:"fld6SNZaaUzXzrl36",amountNote:"fldzKncPIUY74Gkz9",deadline:"fldLCmfhbrb0HUHN2",link:"fldxPAXD5fNEIjebL",received:"fld7X832Z3VPM8OH8",notes:"fldh7z1Lo493vM7RI",stalled:"fldusiTEf2ifpTlvU",via:"fldHjNEoVksX3qCLN",checkin:"fldBGCsxMQVExX2bu",fit:"fldPDijJBHkKK8euk",fitWhy:"fldNAmdKvjNAVJnPX",feedback:"fldIcWZXJ65DyiMlG"},
   s:{post:"fld68LAMAkL1dHzyO",date:"fldbEip1o5NYOZXMU",status:"fldQiyGlvX9tCXPJ5",format:"fldoqaL8uwMDXVmFl",caption:"fldBswNdGTTtaS0kk",why:"fldWcnDM0xL5vJUD7",folder:"fld7Wpj1cEfsyAavx",follow:"fldGYn5qc2ou055xT",tag:"fldBif8N9exojb3W4",collab:"fld8hmdVdFhkYLRRB",mok:"fldV2tYFcd6KFll6I",mnotes:"fldDVnmBCbyvCvkZE",seanOn:"fldPwgTpMQrOxjLUW"}
 };
@@ -481,7 +486,7 @@ const KIND_ICON = {launch:"λ",talk:SVG.mic,sign:SVG.pen,closing:SVG.flag,meetin
 const PERSONAL_GROUPS = [["birthday","Birthdays and gifts"],["family","Family"],["travel","Travel"],["home","Home"],["document","Documents and renewals"],["visa","French visa"],["health","Health"]];
 
 const S = { items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
-  interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], claims:[], alltx:null, coa:null, zclients:null, status:null, config:null, nyu:null, teach:null, cards:null,
+  interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], claims:[], alltx:null, invpay:[], memorials:null, lock:null, coa:null, zclients:null, status:null, config:null, nyu:null, teach:null, cards:null,
   people:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
 let db=null, mcp=null, sample=null, dict=null;
 
@@ -658,11 +663,26 @@ function renderTeam(){
   if(connErr(el,"people","Airtable","the team")) return;
   if(!S.people){ el.innerHTML=`<div class="empty">Loading…</div>`; return; }
   const byId={}; S.people.forEach(r=>byId[r.id]=cell(r,F.c.name));
+  const q=((document.getElementById("team-q")||{}).value||"").toLowerCase().trim();
+  if(q){ const hits=S.people.filter(r=>[F.c.name,F.c.email,F.c.org,F.c.role,F.c.keywords,F.c.summary].map(f=>String(cell(r,f)||"")).join(" ").toLowerCase().includes(q)).slice(0,60);
+    el.innerHTML=`<div class="sub-h">${hits.length} match${hits.length===1?"":"es"}</div>`+(hits.length?hits.map(r=>personHTML(r,byId,true)).join(""):`<div class="empty">No one matches.</div>`); return; }
   const groups=[["Core","Core team"],["Regular collaborator","Regular collaborators"],["Worked with once or twice","Worked with once or twice"],["Advisor (unofficial)","Advisors (unofficial)"]];
   el.innerHTML = groups.map(([g,label])=>{
     const rows=S.people.filter(r=>selName(cell(r,F.c.group))===g).sort((a,b)=>(cell(a,F.c.name)||"").localeCompare(cell(b,F.c.name)||""));
     return `<div class="sub-h">${esc(label)} · ${rows.length}</div>`+(rows.length?rows.map(r=>personHTML(r,byId,true)).join(""):`<div class="empty">No one here yet.</div>`);
-  }).join("")+`<div class="note">Future goal: a formal advisory board. Until then every advisor is unofficial.</div>`;
+  }).join("")+`<div class="note">Future goal: a formal advisory board. Until then every advisor is unofficial.</div>`+dupesHTML();
+}
+function dupesHTML(){
+  const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[^a-z@.\s]/g,"").replace(/\s+/g," ").trim();
+  const by={}, add=(k,r)=>{ if(!k) return; (by[k]=by[k]||new Set()).add(r.id); };
+  S.people.forEach(r=>{ add("e:"+norm(cell(r,F.c.email)),r); const n=norm(cell(r,F.c.name)); if(n&&!/ and | & /.test(n)) add("n:"+n,r); });
+  const seen=new Set(), groups=[];
+  Object.values(by).filter(s=>s.size>1).forEach(s=>{ const key=[...s].sort().join(","); if(!seen.has(key)){ seen.add(key); groups.push([...s]); } });
+  if(!groups.length) return "";
+  const nm=id=>{ const r=S.people.find(x=>x.id===id); return r?(cell(r,F.c.name)||id)+(cell(r,F.c.email)?" ("+cell(r,F.c.email)+")":""):id; };
+  return `<div class="sub-h">Possible duplicates · ${groups.length}</div>`+groups.slice(0,30).map(g=>{
+    const brief=`Merge these duplicate people in the QAM Airtable Contacts table (base appPeWDhXHErd70GJ, table tblQeHggYxmEK7OEY): ${g.map(nm).join(" and ")}. Record ids: ${g.join(", ")}. Keep the richest record, copy over any notes, links, Introduced by and Connected to, then delete the extra record. Do not merge two different people who only share a name; ask me if unsure.`;
+    return `<div class="row a-qam"><div class="ico">${SVG.people}</div><div class="txt"><div class="t">${g.map(id=>esc(nm(id))).join(" · ")}</div><div class="s">Same email or same name</div></div><span></span><div class="acts"><a class="act go" href="${esc(NEW_CHAT+encodeURIComponent(brief))}" target="_blank" rel="noopener">Merge with Claude</a></div></div>`; }).join("");
 }
 function renderStalled(){
   const el=document.getElementById("stalled");
@@ -740,7 +760,7 @@ function renderSocial(){
         ${cell(r,F.s.mnotes)?`<div class="hint" style="margin-top:6px">Maureen: ${esc(cell(r,F.s.mnotes))}</div>`:""}
         ${card?`<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;font-size:13px">${card}</div>`:""}
         <div class="acts" style="margin-top:8px">${st==="Claude draft"?`<button class="act ok go" type="button" data-social="approve">${SVG.check}Approve</button><button class="act" type="button" data-social="changes">Needs changes</button>`:""}${folder?`<a class="act" href="${esc(folder)}" target="_blank" rel="noopener">Images ↗</a>`:""}</div></div></div>`;}).join("")
-    : `<div class="empty">${SVG.calm}<span>Nothing planned for the next 7 days.</span></div>`;
+    : `<div class="empty">${SVG.calm}<span>Nothing planned for the next 14 days.</span></div>`;
 }
 function renderThursday(){
   const th=meetingThursday(), key=ymd(th);
@@ -837,7 +857,8 @@ function renderTeaching(){
     <div class="tile"><span class="k">Grading due</span><span class="v ${grading.length?"bad":""}">${grading.length}</span><span class="x">${esc(grading[0]?grading[0].title:"Nothing due")}</span></div>
     <div class="tile"><span class="k">Next NYU date</span><span class="v" style="font-size:19px">${esc(nextMark?whenLabel(nextMark.date):"·")}</span><span class="x">${esc(nextMark?nextMark.label:"")}</span></div>`;
   listInto(document.getElementById("teaching-items"), open.filter(i=>i.course!=="memorials"), "Nothing open for teaching.");
-  listInto(document.getElementById("memorials-items"), open.filter(i=>i.course==="memorials"), "Nothing open for the Memorials class yet. What lives here is still to decide.");
+  renderMemorials();
+  listInto(document.getElementById("memorials-items"), open.filter(i=>i.course==="memorials"), "No open to-dos for the Memorials class.");
   renderWeek(t); renderAttendance(); renderInterfolio();
 }
 function renderWeek(t){
@@ -853,6 +874,14 @@ function renderWeek(t){
     ${c.flag?`<div class="wkf">${esc(c.flag)}</div>`:""}
     ${c.src&&c.src.url?`<a class="wks" href="${esc(c.src.url)}" target="_blank" rel="noopener">${esc(c.src.label||"Source")}</a>`:""}
   </div>`).join("")+`</div>`;
+}
+function renderMemorials(){
+  const m=S.memorials||{}, el=document.getElementById("memorials-plan"), w=m.week||null;
+  const sec=(t,body)=>`<div class="sub-h">${t}</div>${body}`, fill=`<div class="empty">${SCAN_FILL}</div>`;
+  el.innerHTML=sec("This week's session",w?`<div class="wkc" style="margin:8px 14px"><div class="wkh"><b>${esc(w.title||"")}</b><span class="s">${esc(w.date?shortDate(w.date):"")}${w.time?" · "+esc(w.time):""}</span></div><ul>${(w.plan||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:fill)
+    +sec("Guest speakers",(m.guests||[]).length?m.guests.map(g=>`<div class="row a-teaching"><div class="ico">${SVG.people}</div><div class="txt"><div class="t">${esc(g.name)}${g.topic?" · "+esc(g.topic):""}</div><div class="s">${esc(g.status||"")}${g.date?" · "+esc(shortDate(g.date)):""}${g.note?" · "+esc(g.note):""}</div></div><span></span></div>`).join(""):fill)
+    +sec("Student projects",(m.projects||[]).length?m.projects.map(p=>`<div class="row a-teaching"><div class="ico">${SVG.doc}</div><div class="txt"><div class="t">${esc(p.student||"")}${p.title?" · "+esc(p.title):""}</div><div class="s">${esc(p.status||"")}${p.due?" · due "+esc(shortDate(p.due)):""}</div></div><span></span></div>`).join(""):fill)
+    +sec("Readings",(m.readings||[]).length?m.readings.map(r=>`<div class="row a-teaching"><div class="ico">${SVG.doc}</div><div class="txt"><div class="t">${r.url&&safeUrl(r.url)?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>`:esc(r.title)}</div><div class="s">${esc(r.week||"")}</div></div><span></span></div>`).join(""):fill);
 }
 let attClass=null;
 const DOWN={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
@@ -911,7 +940,8 @@ const unwrapZ=r=>{ const p=(r&&r.payload)||{}; return p.data||p; };
 function zOk(r){ const p=(r&&r.payload)||{}, d=p.data||p; if(p.status==="failure"||(typeof d.code==="number"&&d.code!==0)) throw new Error(d.message||"Zoho refused it"); return d; }
 async function zohoUndo(u){
   const B="Zoho Books Banking", Z="Zoho Books", q={organization_id:ZORG};
-  if(u.op==="uncat"){ let ok=false, last; for(const id of (u.ids||[]).filter(Boolean)){ try{ zOk(await mcp.callTool(B,"ZohoBooks_uncategorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{...q,account_id:u.account_id}})); ok=true; break; }catch(e){ last=e; } } if(!ok) throw last||new Error("uncategorize failed"); }
+  if(u.op==="uncat"){ let ok=false, last; for(const id of (u.ids||[]).filter(Boolean)){ try{ zOk(await mcp.callTool(B,"ZohoBooks_uncategorize_bank_transaction",{path_variables:{transaction_id:id},query_params:{...q,account_id:u.account_id}})); ok=true; break; }catch(e){ last=e; } } if(!ok) throw last||new Error("uncategorize failed");
+    if(u.thenExclude){ const tid=(u.ids||[]).filter(Boolean).slice(-1)[0]; zOk(await mcp.callTool(B,"ZohoBooks_exclude_bank_transaction",{path_variables:{transaction_id:tid},query_params:{...q,account_id:u.account_id}})); } }
   else if(u.op==="restore") zOk(await mcp.callTool(B,"ZohoBooks_restore_bank_transaction",{path_variables:{transaction_id:u.id},query_params:{...q,account_id:u.account_id}}));
   else if(u.op==="exclude") zOk(await mcp.callTool(B,"ZohoBooks_exclude_bank_transaction",{path_variables:{transaction_id:u.id},query_params:{...q,account_id:u.account_id}}));
   else if(u.op==="delinv") zOk(await mcp.callTool(Z,"delete_invoice",{path_variables:{invoice_id:u.invoice_id},query_params:q}));
@@ -958,7 +988,8 @@ const chKey=t=>String(t.payee||chName(t.description)).toUpperCase().replace(/[^A
 const chIn=t=>t.debit_or_credit==="debit";
 const chMoney=n=>"$"+(+n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const chExp=()=>(S.coa&&S.coa.exp.length)?S.coa.exp:CH_CATS;
-const chIncL=()=>(S.coa&&S.coa.inc.length)?S.coa.inc:CH_INC;
+const INC_OK=["Art Sales","Teaching Income","Speaking Fees & Honoraria","Freelance Income","Reimbursements"];
+const chIncL=()=>{ const src=(S.coa&&S.coa.inc.length)?S.coa.inc:CH_INC; const f=src.filter(x=>INC_OK.includes(x[0])); return f.length?f:src; };
 const chCat=id=>{ const c=chExp().concat(chIncL()).find(x=>x[1]===id); return c?c[0]:""; };
 function shortDate(s){ const d=parse(s); return d?MON[d.getMonth()]+" "+d.getDate():(s||""); }
 function chLearned(t){ const k=chKey(t); if(!k) return null; let best=null;
@@ -994,6 +1025,14 @@ function chTop(t){ const inn=chIn(t); return `<div class="bk2top"><span class="d
 function chMeta(t,extra){ return `<div class="bk2meta">${esc(String(t.account_name||"").replace(/®/g,""))} · <span class="raw">${esc(t.description||"")}</span>${extra||""}</div>`; }
 function reimbBtn(t){ const id=esc(t.transaction_id), r=S.reimb.find(x=>x.id===t.transaction_id&&x.status!=="cancelled");
   return r?`<span class="bk2tagged">Reimburse: ${esc(r.payer||"")}</span>`:`<button class="bk2b reimb" type="button" data-chreimb="${id}">Reimburse</button>`; }
+function guessCat(t,c){
+  const id=t.transaction_id; if(CH.pick&&CH.pick.cat!==undefined) return CH.pick.cat;
+  const inline=chCatOf(id); if(inline) return inline;
+  if(c&&c.cat) return c.cat; const sr=S.sort[id]; if(sr&&sr.cat) return sr.cat;
+  if(t.offset_account_name){ const m=chExp().find(x=>x[0].replace(/[^a-z]/gi,"").toLowerCase()===t.offset_account_name.replace(/[^a-z]/gi,"").toLowerCase()); if(m) return m[1]; }
+  if((S.txns||[]).some(x=>x.transaction_id===id)){ const cc=chClassify(t); if(cc.cat) return cc.cat; }
+  const h=chHint((t.payee||"")+" "+(t.description||"")); return h.cat||"";
+}
 function pickerHTML(t,c){
   if(!CH.pick||CH.pick.id!==t.transaction_id) return "";
   const id=esc(t.transaction_id), g=CH.pick.payer!==undefined?CH.pick.payer:payerGuess(t,c), q=(CH.pick.q||"").toLowerCase();
@@ -1001,6 +1040,7 @@ function pickerHTML(t,c){
   return `<div class="pick"><div class="pickh">Who pays you back?</div>
     <div class="pickrow">${PAYERS.map(p=>`<button type="button" class="tg ${g===p.key?"on":""}" data-pkpayer="${esc(p.key)}">${esc(p.name)}</button>`).join("")}<button type="button" class="tg ${g==="__other"?"on":""}" data-pkpayer="__other">Other</button></div>
     ${g==="__other"?`<div class="pickrow"><input type="search" data-pkq="${id}" value="${esc(CH.pick.q||"")}" placeholder="${S.zclients?"Search your Zoho clients":"Loading clients…"}" aria-label="Search clients">${others.map(z=>`<button type="button" class="tg ${CH.pick.cid===z.contact_id?"on":""}" data-pkcid="${esc(z.contact_id)}" data-pkname="${esc(z.contact_name)}">${esc(z.contact_name)}</button>`).join("")}</div>`:""}
+    <div class="pickrow"><label class="s">Category</label><select data-pkcat="${id}" aria-label="Category"><option value="">Pick a category</option>${chExp().map(k=>`<option value="${k[1]}"${guessCat(t,c)===k[1]?" selected":""}>${esc(k[0])}</option>`).join("")}</select>${guessCat(t,c)?`<span class="s">Claude's guess</span>`:""}</div>
     <div class="pickrow"><button type="button" class="bk2b file" data-pkgo="${id}">Reimburse ${g&&g!=="__other"?"from "+esc(g.replace(" (QAM)","")):(CH.pick.cname?"from "+esc(CH.pick.cname):"")}</button><button type="button" class="bk2b ghost" data-pkx="1">Cancel</button></div></div>`;
 }
 function catSelect(t,c){ const inn=chIn(t), refund=!!CH.refund[t.transaction_id], list=(inn&&!refund)?chIncL():chExp();
@@ -1058,7 +1098,7 @@ function renderCharges(){
     + (g.needs.length?chGroup("needs","Needs you",g.needs.length,g.needs.map(x=>chLine(...x)).join("")):"")
     + (g.personal.length?chGroup("personal","Probably personal",g.personal.length,g.personal.map(x=>chCompact(...x)).join(""),bulk):"")
     + (g.parked.length?chGroup("parked","Parked",g.parked.length,g.parked.map(x=>chParked(...x)).join("")):"")
-    + (CH.done.length?`<div class="sub-h">Done this visit (${CH.done.length}) · Undo at the top undoes the last one</div>`+CH.done.slice(0,40).map(d=>`<div class="bk2row"><span class="t">${esc(d.text)}<small>${esc(d.label)}</small></span><span class="a">${chMoney(d.amt)}</span></div>`).join(""):"");
+    + recentHTML(moneyUndo);
   Object.keys(keep).forEach(id=>{ const k=keep[id], c=el.querySelector(`[data-chcat="${id}"]`), n=el.querySelector(`[data-chnote="${id}"]`); if(c&&k.cat) c.value=k.cat; if(n&&k.note) n.value=k.note; });
 }
 async function loadAllTx(){
@@ -1164,8 +1204,8 @@ async function doReimburse(id){
   if(payer==="__other"){ if(!CH.pick.cid){ chMsg(id,"Pick who pays you back (search your Zoho clients)."); return; } payer=CH.pick.cname; cid=CH.pick.cid; }
   else { const p=PAYERS.find(p=>p.key===payer); if(!p){ chMsg(id,"Pick who pays you back."); return; } cid=p.customer_id; }
   const status=t.status||"uncategorized";
-  const cat=chCatOf(id)||c.cat||((S.sort[id]||{}).cat)||"";
-  if(status!=="categorized" && !cat){ chMsg(id,"Pick a category first, then Reimburse."); return; }
+  const pk=document.querySelector(`[data-pkcat="${id}"]`), cat=(pk&&pk.value)||guessCat(t,c);
+  if(!cat){ chMsg(id,"Choose a category in the box above, then tap Reimburse."); return; }
   const note=chNote(id), title=(t.payee||chName(t.description))+(note?": "+note:"");
   const prevR=S.reimb.find(r=>r.id===id); const prevRdoc=prevR?(({id:_,...rest})=>rest)(prevR):null;
   // 1. reimbursement record first
@@ -1178,7 +1218,7 @@ async function doReimburse(id){
       const ex=unwrapZ(await mcp.callTool("Zoho Books","get_expense",{path_variables:{expense_id:id},query_params:{organization_id:ZORG}})).expense;
       if(!ex) throw new Error("This one isn't an expense in Zoho, so it can't be billed.");
       const base={date:ex.date,amount:ex.amount,account_id:ex.account_id,paid_through_account_id:ex.paid_through_account_id,description:ex.description||""};
-      zOk(await mcp.callTool("Zoho Books","update_expense",{path_variables:{expense_id:id},query_params:{organization_id:ZORG},body:{...base,customer_id:cid,is_billable:true}}));
+      zOk(await mcp.callTool("Zoho Books","update_expense",{path_variables:{expense_id:id},query_params:{organization_id:ZORG},body:{...base,account_id:cat||base.account_id,customer_id:cid,is_billable:true}}));
       expId=id; undo={op:"expupd",expense_id:id,prevBody:{...base,customer_id:ex.customer_id||"",is_billable:!!ex.is_billable}};
     } else {
       let restored=false;
@@ -1205,10 +1245,27 @@ async function doReimburse(id){
 /* ---------- Reimbursements tab ---------- */
 let RBSEL={}; try{ RBSEL=JSON.parse(localStorage.getItem("cc-rbsel")||"{}")||{}; }catch(_){}
 const rbSaveSel=()=>{ try{ localStorage.setItem("cc-rbsel",JSON.stringify(RBSEL)); }catch(_){} };
-let RBPREV=null; // {payer, groups:[{label, items}]}
+let RBPREV=null, RBPAY=null;
+async function markPaid(k){
+  const inp=document.querySelector(`[data-payamt="${k}"]`), amt=parseFloat(inp&&inp.value); if(!(amt>0)) return toast("Enter the amount you received.");
+  const its=S.reimb.filter(r=>r.status==="claimed"&&(r.invoice_id||r.invoice_number||"?")===k), total=its.reduce((s,r)=>s+(+r.amount||0),0);
+  const pp=S.invpay.find(x=>x.id===k), sofar=(pp?pp.amount:0)+amt, docs=[{path:"invpay/"+k,prev:pp?(({id,...r})=>r)(pp):null}];
+  try{
+    await db.doc("invpay/"+k).set({amount:sofar,total,ts:Date.now(),invoice_number:its[0]?its[0].invoice_number:""});
+    if(sofar>=total-0.005) for(const r of its){ const prev={...r}; delete prev.id; docs.push({path:"reimb/"+r.id,prev}); await db.doc("reimb/"+r.id).set({...prev,status:"paid",paidAt:Date.now(),paidBy:"manual"}); }
+    await zUndoPush({op:"none",label:"marked paid "+(its[0]?its[0].invoice_number:""),docs});
+    RBPAY=null; toast(sofar>=total-0.005?"Marked paid":"Partial payment saved"); renderReimb();
+  }catch(e){ toast("Couldn't save that. Nothing changed."); }
+} // {payer, groups:[{label, items}]}
 const isFalls=r=>/FALLS/i.test((r.title||"")+" "+(r.vendor||""));
 function rbGroupsFor(payer, items){ if(payer!=="NYFA") return [{label:"",items}]; const f=items.filter(isFalls), o=items.filter(r=>!isFalls(r)); return [o.length&&{label:"QAM costs",items:o}, f.length&&{label:"Falls Counsel (separate claim)",items:f}].filter(Boolean); }
 function receiptHTML(r){ if(r.receipt&&safeUrl(r.receipt)) return ` · <a href="${esc(r.receipt)}" target="_blank" rel="noopener">receipt ↗</a>`; if(r.receiptMissing) return ` · <b class="miss">receipt missing</b>`; return ` · receipt: ${SCAN_FILL.toLowerCase()}`; }
+function recentHTML(filter){
+  const cut=Date.now()-7*864e5, list=S.undo.filter(u=>(u.ts||0)>=cut&&filter(u)).slice(0,40);
+  if(!list.length) return "";
+  return `<details class="fold"><summary>Recent changes, last 7 days · ${list.length}</summary>${list.map(u=>`<div class="bk2row"><span class="t">${esc(u.label||u.path||"change")}<small>${esc(new Date(u.ts).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"}))}</small></span><button class="bk2b" type="button" data-undoid="${esc(u.id)}">Undo</button></div>`).join("")}<div class="note">Undo reverses that one change, in Zoho too.</div></details>`;
+}
+const moneyUndo=u=>u.type==="zoho"||/^(reimb|sort|claims|invpay|expected)\//.test(u.path||"");
 function renderReimb(){
   const re=document.getElementById("reimb"), all=S.reimb.filter(r=>r.status!=="cancelled");
   if(!all.length){ re.innerHTML=`<div class="empty">${SVG.calm}<span>Nothing to claim. Tap Reimburse on any charge in Sort and it lands here.</span></div>`; return; }
@@ -1224,22 +1281,37 @@ function renderReimb(){
         <div class="acts">${PAYERS.map(x=>`<button class="act ${r.payer===x.key?"on":""}" type="button" data-payer="${esc(x.key)}">${esc(x.key==="Brigitte Mulholland"?"Brigitte":x.key)}</button>`).join("")}<button class="act no" type="button" data-rbremove="${esc(r.id)}">Not reimbursable</button></div></div>`).join("");
     if(p!=="Not tagged"&&picked.length) h+=`<div class="adder"><button class="pbtn" type="button" data-rbmake="${esc(p)}">Make invoice · ${picked.length} · ${money(tot(picked))}</button></div>`;
     if(RBPREV&&RBPREV.payer===p) h+=rbPreviewHTML();
-    if(claimed.length) h+=`<div class="note">Claimed, waiting for payment: ${[...new Set(claimed.map(r=>r.invoice_number||"invoice"))].map(esc).join(", ")} · ${money(tot(claimed))}</div>`;
+    if(claimed.length){ const invs={}; claimed.forEach(r=>{ (invs[r.invoice_id||r.invoice_number||"?"]=invs[r.invoice_id||r.invoice_number||"?"]||[]).push(r); });
+      h+=Object.keys(invs).map(k=>{ const its=invs[k], total=tot(its), pp=S.invpay.find(x=>x.id===k), part=pp&&pp.amount<total-0.005;
+        return `<div class="row a-money"><div class="ico">${SVG.bill}</div><div class="txt"><div class="t">${esc(its[0].invoice_number||"Invoice")} · ${money(total)} · claimed</div><div class="s">${its.length} item${its.length===1?"":"s"}${part?` · partly paid ${money(pp.amount)} of ${money(total)}`:" · waiting for payment"}</div>
+          ${RBPAY&&RBPAY.inv===k?`<div class="pickrow"><label class="s">Amount received</label><input type="number" step="0.01" min="0" data-payamt="${esc(k)}" value="${(total-(pp?pp.amount:0)).toFixed(2)}" style="max-width:140px"><button class="bk2b file" type="button" data-paygo="${esc(k)}">Save</button><button class="bk2b ghost" type="button" data-payx="1">Cancel</button></div>`:""}</div><span></span>
+          <div class="acts"><button class="act ok" type="button" data-markpaid="${esc(k)}">Mark paid</button></div></div>`; }).join(""); }
     if(paid.length) h+=`<div class="note">Paid in the last 60 days: ${money(tot(paid))} (${paid.length} item${paid.length===1?"":"s"})</div>`;
   });
   const claims=S.claims.filter(c=>c.status!=="sent"||Date.now()-(c.ts||0)<30*864e5);
   if(claims.length) h+=`<div class="sub-h">NYFA claim packets</div>`+claims.map(c=>`<div class="row a-money"><div class="ico">${SVG.doc}</div><div class="txt"><div class="t">${esc(c.invoice_number||"Claim")} · ${money(+c.total||0)}${c.label?" · "+esc(c.label):""}</div>
-      <div class="s">${esc({queued:"Packet queued: the morning pass builds it, or build it now",building:"Building",blocked:"Not ready: missing receipts",ready:"Ready",sent:"Sent"}[c.status]||c.status)}${c.driveUrl&&safeUrl(c.driveUrl)?` · <a href="${esc(c.driveUrl)}" target="_blank" rel="noopener">packet ↗</a>`:""}</div>
+      <div class="s">${esc({queued:"Packet queued: the morning pass builds it, or build it now",building:"Building",blocked:"Not built: missing pieces (no incomplete packet)",ready:"Ready",sent:"Sent"}[c.status]||c.status)}${c.driveUrl&&safeUrl(c.driveUrl)?` · <a href="${esc(c.driveUrl)}" target="_blank" rel="noopener">packet ↗</a>`:""}</div>
       ${(c.missing||[]).length?`<div class="s miss">Missing: ${c.missing.map(esc).join(", ")}</div>`:""}${c.note?`<details class="why"><summary>Note to paste</summary><pre class="fu">${esc(c.note)}</pre></details>`:""}</div><span></span>
-      <div class="acts"><a class="act go" href="${esc(NEW_CHAT+encodeURIComponent(claimBrief(c)))}" target="_blank" rel="noopener">Build packet now</a>${(c.missing||[]).length&&c.status==="blocked"?`<button class="act" type="button" data-claimgo="${esc(c.id)}">Go without them</button>`:""}</div></div>`).join("");
-  h+=`<div class="note">Make invoice bills the ticked Zoho expenses to that payer (Zoho marks them invoiced). Preview first, then Send now or Save as draft; either way the items move to Claimed. For NYFA it also queues the claim packet: one PDF, a cover page listing every line, then each receipt with its American Express row. Falls Counsel costs go on their own claim.</div>`;
-  re.innerHTML=h;
+      <div class="acts">${c.invoicePdfUrl&&safeUrl(c.invoicePdfUrl)?`<a class="act go" href="${esc(c.invoicePdfUrl)}" target="_blank" rel="noopener">Invoice PDF</a>`:""}${c.status==="ready"&&c.driveUrl&&safeUrl(c.driveUrl)?`<a class="act go" href="${esc(c.driveUrl)}" target="_blank" rel="noopener">Packet PDF</a>`:""}${c.status!=="ready"?`<a class="act" href="${esc(NEW_CHAT+encodeURIComponent(claimBrief(c)))}" target="_blank" rel="noopener">Build packet now</a>`:""}</div></div>`).join("");
+  h+=`<div class="note">Make invoice bills the ticked Zoho expenses to that payer (Zoho marks them invoiced). Preview first, then Send now or Save as draft; either way the items move to Claimed. For NYFA the invoice stays a draft and the claim packet is built (one PDF: cover page listing every line, then each receipt with its American Express row; Falls Counsel on its own claim). You get the invoice PDF and the packet PDF to upload to NYFA yourself. A packet with any missing receipt is not built.</div>`;
+  re.innerHTML=h+recentHTML(moneyUndo);
 }
-function claimBrief(c){ return `NYFA claim\n\nZoho invoice ${c.invoice_number||""} (${money(+c.total||0)})${c.label?", "+c.label:""}. Lines:\n${(c.items||[]).map(i=>`- ${i.date||""} · ${i.title} · ${money(+i.amount||0)}`).join("\n")}\n\nBuild the claim packet per the NYFA claim rules: one PDF, cover page listing every line with what it was for and the amount, totaling the invoice; then one page per charge with the receipt and the matching American Express row. Never fill a gap with a note: list every missing receipt or Amex image by name. File it in QAM > 02 Funding and give me the note to paste. Then update claims/${c.id} on the Command Center page with status, missing and driveUrl.`; }
+function claimBrief(c){ return `NYFA claim\n\nZoho invoice ${c.invoice_number||""} (${money(+c.total||0)})${c.label?", "+c.label:""}. Lines:\n${(c.items||[]).map(i=>`- ${i.date||""} · ${i.title} · ${money(+i.amount||0)}`).join("\n")}\n\nBuild the claim packet per the NYFA claim rules: one PDF, cover page listing every line with what it was for and the amount, totaling the invoice; then one page per charge with the receipt and the matching American Express row. Never fill a gap with a note, and never build an incomplete packet: if anything is missing, list every missing receipt or Amex image by name and stop. File it in QAM > 02 Funding, save the Zoho invoice PDF next to it, and give me the note to paste. Then update claims/${c.id} on the Command Center page with status, missing, driveUrl and invoicePdfUrl.`; }
 function rbPreviewHTML(){ const P=RBPREV;
   return `<div class="ivprev">${P.groups.map(g=>`<div class="sub-h" style="border-top:0;padding-left:0">${esc(g.label||("Invoice to "+P.payer))}</div>${g.items.map(r=>`<div class="ivl"><span>${esc(shortDate(r.date))} · ${esc(r.title)}${r.expense_id?"":" (not linked to a Zoho expense)"}</span><b>${money(+r.amount||0)}</b></div>`).join("")}<div class="ivl tot"><span>Total</span><b>${money(g.items.reduce((s,r)=>s+(+r.amount||0),0))}</b></div>`).join("")}
-    <div class="adder" style="padding-left:0"><button class="pbtn" type="button" data-rbcreate="send" ${P.busy?"disabled":""}>Send now</button><button class="act" type="button" data-rbcreate="draft" ${P.busy?"disabled":""}>Save as draft</button><button class="act" type="button" data-rbcreate="cancel">Cancel</button></div>
+    ${P.payer==="NYFA"
+      ?`<div class="adder" style="padding-left:0"><button class="pbtn" type="button" data-rbcreate="draft" ${P.busy?"disabled":""}>Save draft and build the claim</button><button class="act" type="button" data-rbcreate="cancel">Cancel</button></div><div class="note" style="border-top:0">NYFA is never sent from here. The invoice is saved as a draft in Zoho, the claim packet is built, and you get both PDFs to upload to NYFA's portal yourself.</div>`
+      :(P.confirm?confirmHTML(P):`<div class="adder" style="padding-left:0"><button class="pbtn" type="button" data-rbcreate="confirm" ${P.busy?"disabled":""}>Send now…</button><button class="act" type="button" data-rbcreate="draft" ${P.busy?"disabled":""}>Save as draft</button><button class="act" type="button" data-rbcreate="cancel">Cancel</button></div>`)}
     ${P.status?`<div class="note">${esc(P.status)}</div>`:""}</div>`; }
+function confirmHTML(P){
+  const payerObj=PAYERS.find(x=>x.key===P.payer), cid=payerObj?payerObj.customer_id:"";
+  const c=(S.zclients||[]).find(z=>z.contact_id===cid)||{}, total=P.groups.reduce((s,g)=>s+g.items.reduce((t,r)=>t+(+r.amount||0),0),0);
+  return `<div class="pick" style="margin-left:0"><div class="pickh">Send this invoice now?</div>
+    <div class="s">To: <b>${esc(c.email||"no email on file in Zoho")}</b> (${esc(c.contact_name||P.payer)})</div>
+    <div class="s">Total: <b>${esc(c.currency_code||"USD")} ${(total).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}</b></div>
+    <div class="pickrow"><button class="pbtn" type="button" data-rbcreate="send" ${c.email?"":"disabled"}>Yes, send it</button><button class="act" type="button" data-rbcreate="unconfirm">Back</button></div>
+    ${c.email?"":`<div class="s miss">Add an email for this client in Zoho first, or save as draft.</div>`}</div>`;
+}
 async function rbCreate(mode){
   const P=RBPREV; if(!P||P.busy||!mcp) return; P.busy=true; P.status="Working…"; renderReimb();
   const payerObj=PAYERS.find(x=>x.key===P.payer); let made=0, failed=0;
@@ -1249,7 +1321,7 @@ async function rbCreate(mode){
     try{
       const body={customer_id:cid,date:ymd(TODAY()),reference_number:(P.payer==="NYFA"?"NYFA claim":"Reimbursement")+(g.label?" · "+g.label:""),
         line_items:g.items.map(r=>{ const li={item_id:REIMB_ITEM,name:"Reimbursement",description:`${r.date||""} ${r.title}`.trim().slice(0,2000),rate:+r.amount||0,quantity:1}; if(r.expense_id) li.expense_id=r.expense_id; return li; })};
-      const res=await mcp.callTool("Zoho Books","create_invoice",{query_params:{organization_id:ZORG,send:mode==="send"},body});
+      const res=await mcp.callTool("Zoho Books","create_invoice",{query_params:{organization_id:ZORG,send:mode==="send"&&P.payer!=="NYFA"},body});
       const inv=unwrapZ(res).invoice||{}; if(!inv.invoice_id) throw new Error("no invoice came back");
       const docs=[];
       for(const r of g.items){ const prev={...r}; delete prev.id; docs.push({path:"reimb/"+r.id,prev}); await db.doc("reimb/"+r.id).set({...prev,status:"claimed",invoice_id:inv.invoice_id,invoice_number:inv.invoice_number||"",claimedAt:Date.now()}); }
@@ -1410,6 +1482,20 @@ function renderPersonal(){
   }).join("");
 }
 
+const SOURCES=[["gmail","Gmail",8],["nyu","NYU mail",8],["calendar","Calendar",8],["zoho","Zoho",30],["airtable","Airtable",30],["meta","Meta (Instagram)",30*24]];
+function renderHealth(){
+  const el=document.getElementById("health"); if(!el) return; const src=(S.status&&S.status.sources)||{};
+  const fmt=ms=>new Date(ms).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"});
+  const live={zoho:S.errors.bank||S.errors.txns||S.errors.invoices, airtable:S.errors.people||S.errors.funding||S.errors.social};
+  const chips=SOURCES.map(([k,label,hrs])=>{ const s=src[k]||null, err=live[k]?(live[k].code||"error"):(s&&s.ok===false?(s.err||"failed"):null);
+    const stale=s&&s.ts&&(Date.now()-s.ts)>hrs*3600e3; let cls="ok", txt;
+    if(err){ cls="bad"; txt=label+": "+(/reauth|expired|login/i.test(err)?"login expired":"sync failed"); }
+    else if(!s||!s.ts){ cls=k==="nyu"||k==="meta"?"bad":"off"; txt=label+": "+(k==="nyu"?"not connected (needs the Mac)":k==="meta"?"not connected":"waiting for first scan"); }
+    else if(stale){ cls="bad"; txt=label+": stale, last synced "+fmt(s.ts); }
+    else txt=label+" ✓ "+fmt(s.ts);
+    return `<span class="hchip ${cls}" title="${esc(err||"")}">${esc(txt)}</span>`; }).join("");
+  el.innerHTML=chips;
+}
 function renderSync(){
   const dot=document.getElementById("syncdot"), t=document.getElementById("synctext"), st=S.status, live=S.config&&S.config.live;
   const fmt=ms=>new Date(ms).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
@@ -1417,7 +1503,7 @@ function renderSync(){
   if(!db){ text="Store unavailable in this view"; cls="err"; }
   else if(!live){ text="Scans are off until switch-on"+(st&&st.lastScan?` · last data ${fmt(st.lastScan)}`:""); cls="off"; }
   else { text=st&&st.lastScan?"Updated "+fmt(st.lastScan):"Waiting for first scan"; cls=st&&st.failed&&st.failed.length?"err":"ok"; if(st&&st.failed&&st.failed.length) text+=" · couldn't read "+st.failed.join(", "); }
-  dot.className="dot "+cls; t.textContent=text;
+  dot.className="dot "+cls; t.textContent=text; renderHealth();
 }
 function renderAll(){
   document.getElementById("today").textContent=TODAY().toLocaleDateString([], {weekday:"short",month:"short",day:"numeric"});
@@ -1453,7 +1539,7 @@ function enqueue(fn){ const p=QUEUE.then(fn,fn); QUEUE=p.catch(()=>{}); return p
 const clean = o => { if(!o) return null; const c={...o}; delete c.id; return c; };
 async function pushUndo(entry){
   await db.collection("undo").doc().set({...entry, ts:Date.now()});
-  for(const u of S.undo.slice(29)){ try{ await db.doc("undo/"+u.id).delete(); }catch(_){} }
+  const cut=Date.now()-7*864e5; for(const u of S.undo.filter((u,i)=>i>=150||(u.ts||0)<cut)){ try{ await db.doc("undo/"+u.id).delete(); }catch(_){} }
 }
 function currentDoc(col,id){ return ({state:S.state[id],pipeline:S.pipeline[id],sort:S.sort[id]})[col] || (S[col]&&Array.isArray(S[col])?S[col].find(x=>x.id===id):null); }
 function dbWrite(path, data, label, merge, quiet){
@@ -1469,9 +1555,10 @@ async function setItemState(id, s, until){
   if(await dbWrite("state/"+id,{s,until:until||null,ts:Date.now(),title:it.title||"",area:it.area||"",kind:it.kind||""},it.title||"",false))
     toast({done:"Checked off. It won't come back.",wrong:"Gone for good",snoozed:"Snoozed until "+longDate(until)}[s]);
 }
-function undoLast(){
-  if(!db||!S.undo.length) return;
-  return enqueue(async()=>{ const u=S.undo[0]; if(!u) return;
+function undoLast(){ if(S.undo.length) return undoEntry(S.undo[0].id); }
+function undoEntry(uid){
+  if(!db) return;
+  return enqueue(async()=>{ const u=S.undo.find(x=>x.id===uid); if(!u) return;
     try{
       if(u.type==="db"){ if(u.prev) await db.doc(u.path).set(u.prev); else await db.doc(u.path).delete(); }
       else if(u.type==="airtable"&&mcp){ await mcp.callTool("Airtable","update_records_for_table",{baseId:BASE,tableId:u.table,records:[{id:u.rec,fields:u.prev}]}); }
@@ -1542,9 +1629,12 @@ document.addEventListener("click", e=>{
     return; }
   const rbm=e.target.closest("[data-rbmake]"); if(rbm){ const p=rbm.dataset.rbmake, items=S.reimb.filter(r=>r.status==="open"&&(r.payer||"Not tagged")===p&&RBSEL[r.id]!==false).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
     RBPREV={payer:p,groups:rbGroupsFor(p,items),busy:false,status:""}; renderReimb(); return; }
-  const rbc=e.target.closest("[data-rbcreate]"); if(rbc){ const m=rbc.dataset.rbcreate; if(m==="cancel"){ RBPREV=null; renderReimb(); } else rbCreate(m); return; }
+  const rbc=e.target.closest("[data-rbcreate]"); if(rbc){ const m=rbc.dataset.rbcreate; if(m==="cancel"){ RBPREV=null; renderReimb(); } else if(m==="confirm"){ RBPREV.confirm=true; ivLoadContacts().then(renderReimb); renderReimb(); } else if(m==="unconfirm"){ RBPREV.confirm=false; renderReimb(); } else rbCreate(m); return; }
   const rbr=e.target.closest("[data-rbremove]"); if(rbr){ rbRemove(rbr.dataset.rbremove); return; }
-  const cg=e.target.closest("[data-claimgo]"); if(cg){ dbWrite("claims/"+cg.dataset.claimgo,{status:"ready",goWithout:true},"claim",true).then(ok=>ok&&toast("Marked ready without the missing pieces")); return; }
+  const mp=e.target.closest("[data-markpaid]"); if(mp){ RBPAY={inv:mp.dataset.markpaid}; renderReimb(); return; }
+  const mpg=e.target.closest("[data-paygo]"); if(mpg){ markPaid(mpg.dataset.paygo); return; }
+  const mpx=e.target.closest("[data-payx]"); if(mpx){ RBPAY=null; renderReimb(); return; }
+  const ue=e.target.closest("[data-undoid]"); if(ue){ undoEntry(ue.dataset.undoid); return; }
   const py=e.target.closest("[data-payer]"); if(py){ rbSetPayer(py.closest("[data-reimb]").dataset.reimb, py.dataset.payer); return; }
   if(e.target.id==="att-go") return attendanceGo();
   const cp=e.target.closest("[data-copy]"); if(cp){ const rec=S.attendance.find(a=>a.id===document.getElementById("attend").dataset.doc), d=rec&&rec.drafts&&rec.drafts[+cp.dataset.copy];
@@ -1558,6 +1648,7 @@ document.addEventListener("input", e=>{ if(ivInput(e)) return;
 document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("person")){ e.preventDefault(); e.target.classList.toggle("open"); }});
 document.getElementById("undo").addEventListener("click", undoLast);
 document.getElementById("lead-q").addEventListener("input", renderLeads);
+document.getElementById("team-q").addEventListener("input", renderTeam);
 
 async function attendanceGo(){
   const el=document.getElementById("attend"), absent=[...el.querySelectorAll('input[name="absent"]:checked')].map(i=>i.value);
@@ -1648,6 +1739,7 @@ async function loadTxns(opts){
 async function refresh(){
   const btn=document.getElementById("refresh"); btn.classList.add("spin"); btn.disabled=true;
   const trig=S.config&&S.config.live&&(S.config.refreshTriggerId||S.config.scanTriggerId);
+  if(S.lock&&S.lock.until&&S.lock.until>Date.now()){ toast("A scan is already running ("+(S.lock.by||"scan")+"). New items land when it finishes."); btn.classList.remove("spin"); btn.disabled=false; return; }
   try{ if(trig&&mcp){ await mcp.callTool("Claude Code Remote","fire_trigger",{trigger_id:trig}); toast("Checking email and calendar. New items land in a few minutes."); }
     else toast(trig?"Refreshed. Allow Claude Code Remote to run a check.":"Refreshed. Scans switch on when your Mac is back."); }
   catch(e){ toast(e&&e.code==="approval_required"?"Allow Claude Code Remote to run a check.":"Couldn't start a check. Showing the latest data."); }
@@ -1676,9 +1768,9 @@ function subDoc(path,key){ db.doc(path).onSnapshot(d=>{ S[key]=d.exists?d.data()
   [db,mcp,sample,dict]=await Promise.all(["db","mcp","sample","dictation"].map(n=>c.use(n).catch(()=>null)));
   if(db){
     ["items","state","timeline","goals","cv","briefs","thursday","opps","pipeline","waiting","interfolio","classes","attendance","reimb"].forEach(k=>sub(k,k));
-    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims");
-    sub("undo","undo",{order:"ts",dir:"desc",limit:40});
-    subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach"); subDoc("meta/cards","cards");
+    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims"); sub("invpay","invpay");
+    sub("undo","undo",{order:"ts",dir:"desc",limit:150});
+    subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach"); subDoc("meta/cards","cards"); subDoc("meta/memorials","memorials"); subDoc("meta/lock","lock");
   }
   if(dict){
     const mic=document.getElementById("tell-mic"), ta=document.getElementById("tell-text"); mic.hidden=false; let base="";
