@@ -316,6 +316,10 @@ details.why .mine{font-style:italic}
         <div class="sec-h"><h2>On Deck</h2><span class="meta" id="deck-n"></span></div>
         <div class="panel" id="deck-list"></div>
       </div>
+      <div class="sec" id="asks-sec" hidden>
+        <div class="sec-h"><h2>Claude is on it</h2><span class="meta" id="asks-n"></span></div>
+        <div class="panel" id="asks"></div>
+      </div>
       <div class="sec">
         <div class="sec-h"><h2>Add</h2></div>
         <div class="panel">
@@ -490,7 +494,7 @@ const KIND_ICON = {launch:"λ",talk:SVG.mic,sign:SVG.pen,closing:SVG.flag,meetin
   social:SVG.star,birthday:SVG.gift,travel:SVG.plane,home:SVG.home,document:SVG.doc,health:SVG.heart,family:SVG.heart,visa:SVG.doc,job:SVG.job,reimbursement:SVG.bill,grading:SVG.doc};
 const PERSONAL_GROUPS = [["birthday","Birthdays and gifts"],["family","Family"],["travel","Travel"],["home","Home"],["document","Documents and renewals"],["visa","French visa"],["health","Health"]];
 
-const S = { items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
+const S = { asks:[], items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
   interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], claims:[], alltx:null, invpay:[], memorials:null, lock:null, coa:null, zclients:null, status:null, config:null, nyu:null, teach:null, cards:null,
   people:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
 let db=null, mcp=null, sample=null, dict=null;
@@ -594,6 +598,7 @@ function renderDeck(){
       note:[x.sent?`sent ${Math.abs(daysUntil(x.sent))}d ago`:"",x.what||""].filter(Boolean).join(" · "),src:x.url?{url:x.url,label:"Thread"}:null}));
   document.getElementById("wait-n").textContent = w.length? w.length+" open" : "";
   listInto(document.getElementById("waiting"), w, "No one owes you a reply right now.");
+  renderAsks();
 }
 
 const TL_START = () => addDays(TODAY(),-7);
@@ -1344,7 +1349,7 @@ function renderReimb(){
   if(claims.length) h+=`<div class="sub-h">NYFA claim packets</div>`+claims.map(c=>`<div class="row a-money"><div class="ico">${SVG.doc}</div><div class="txt"><div class="t">${esc(c.invoice_number||"Claim")} · ${money(+c.total||0)}${c.label?" · "+esc(c.label):""}</div>
       <div class="s">${esc({queued:"Packet queued: the morning pass builds it, or build it now",building:"Building",blocked:"Not built: missing pieces (no incomplete packet)",ready:"Ready",sent:"Sent"}[c.status]||c.status)}${c.driveUrl&&safeUrl(c.driveUrl)?` · <a href="${esc(c.driveUrl)}" target="_blank" rel="noopener">packet ↗</a>`:""}</div>
       ${(c.missing||[]).length?`<div class="s miss">Missing: ${c.missing.map(esc).join(", ")}</div>`:""}${c.note?`<details class="why"><summary>Note to paste</summary><pre class="fu">${esc(c.note)}</pre></details>`:""}</div><span></span>
-      <div class="acts">${c.invoicePdfUrl&&safeUrl(c.invoicePdfUrl)?`<a class="act go" href="${esc(c.invoicePdfUrl)}" target="_blank" rel="noopener">Invoice PDF</a>`:""}${c.status==="ready"&&c.driveUrl&&safeUrl(c.driveUrl)?`<a class="act go" href="${esc(c.driveUrl)}" target="_blank" rel="noopener">Packet PDF</a>`:""}${c.status!=="ready"?`<a class="act" href="${esc(NEW_CHAT+encodeURIComponent(claimBrief(c)))}" target="_blank" rel="noopener">Build packet now</a>`:""}</div></div>`).join("");
+      <div class="acts">${c.invoicePdfUrl&&safeUrl(c.invoicePdfUrl)?`<a class="act go" href="${esc(c.invoicePdfUrl)}" target="_blank" rel="noopener">Invoice PDF</a>`:""}${c.status==="ready"&&c.driveUrl&&safeUrl(c.driveUrl)?`<a class="act go" href="${esc(c.driveUrl)}" target="_blank" rel="noopener">Packet PDF</a>`:""}${c.status!=="ready"?((S.asks.find(a=>a.id==="packet-"+c.id&&(a.status==="queued"||a.status==="working")&&Date.now()-(a.ts||0)<50*60e3))?`<span class="act">Claude is building it…</span>`:`<a class="act" href="${esc(NEW_CHAT+encodeURIComponent(claimBrief(c)))}" target="_blank" rel="noopener">Build packet now</a>`):""}</div></div>`).join("");
   h+=`<div class="note">Make invoice bills the ticked Zoho expenses to that payer (Zoho marks them invoiced). Preview first, then Send now or Save as draft; either way the items move to Claimed. For NYFA the invoice stays a draft and the claim packet is built (one PDF: cover page listing every line, then each receipt with its American Express row; Falls Counsel on its own claim). You get the invoice PDF and the packet PDF to upload to NYFA yourself. A packet with any missing receipt is not built.</div>`;
   re.innerHTML=h+recentHTML(moneyUndo);
 }
@@ -1630,26 +1635,78 @@ function airtableUpdate(table, rec, fields, prev, label, ok){
   });
 }
 
-/* Claude hand-off links (Apply, Brief me, Build packet, Merge): copy the brief, then open a new chat.
-   If the browser blocks the new tab, show the brief with a plain link so nothing is lost. */
+/* Claude jobs (Apply, Brief me, Build packet now, Merge with Claude).
+   The page runs in a sandbox that claude.ai refuses to open from, so instead of opening a chat
+   each button queues asks/<id> and starts the morning-scan task with just that one job attached.
+   Results come back into the "Claude is on it" list on On Deck. */
+const SCAN_TRIG_DEFAULT="trig_01YFxWSqykyUZrhVbiru1pqS";
+const ASK_LABEL={queued:"Waiting to start",working:"Working on it",done:"Done",needs:"Needs you",failed:"Couldn't finish"};
+const askKind=b=>/^NYFA claim/.test(b)?"packet":/^Apply:/.test(b)?"apply":/^Brief me/.test(b)?"brief":/^Merge these duplicate/.test(b)?"merge":"other";
+const hashS=s=>{ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return (h>>>0).toString(36); };
+function askId(brief){ const k=askKind(brief), m=/claims\/([A-Za-z0-9_-]+)/.exec(brief); return k==="packet"&&m?"packet-"+m[1]:k+"-"+hashS(brief); }
+function askTitle(kind,brief){ const first=brief.split("\n")[0].trim();
+  if(kind==="packet"){ const m=/invoice (\S+)/.exec(brief); return "Build NYFA packet"+(m?" for "+m[1]:""); }
+  if(kind==="brief"){ const m=/meeting: (.+?)\. Who are/.exec(first); return "Brief me: "+(m?m[1]:first).slice(0,80); }
+  if(kind==="merge") return "Merge duplicates: "+((/people in the QAM Airtable Contacts table \([^)]*\): (.+?)\. Record ids/.exec(first)||[])[1]||"people").slice(0,80);
+  return first.slice(0,90); }
+const ASK_HOW={
+  packet:"This is section C4 for that one claim, done now with the nyfa-claim skill. Set the claims doc status \"building\" first. If any receipt or Amex row is missing, set the claims doc to \"blocked\" with missing: [names], build nothing, and set the ask to \"needs\" listing what is missing. When complete, set the claims doc to \"ready\" with driveUrl, invoicePdfUrl and note.",
+  apply:"Use the apply skill. Save the draft in Drive in the right folder (QAM > 02 Funding for QAM, or Applications For Art Practice > \"Funder Year\" for his practice). Never submit anything. Put the open questions Sean must answer in result.",
+  brief:"Use Gmail, Granola, Calendar and the web. result: who they are, why they could help Sean, and three questions to ask.",
+  merge:"Airtable Contacts merge. Only merge when clearly the same person; otherwise change nothing and set the ask to \"needs\" with your question.",
+  other:"Do it only if it is safe and reversible; otherwise set the ask to \"needs\"."};
+function askText(id,kind,brief){ return `ON-DEMAND JOB from the Command Center page. This is NOT the morning scan: skip the morning scan steps 1 to 12 and sections A to D, except what this job names. Keep the LOCK rule (write by: "Claude job", until: now + 45 minutes) and all HARD RULES. Do not change meta/status.lastScan.
+
+Job: asks/${id} (kind ${kind}). First set asks/${id} status "working" and startedAt (ms). Then do the brief below. When finished, write on asks/${id}: status "done", "needs" (Sean must decide or supply something) or "failed"; result (plain text under 1200 characters: what was done and what Sean must do, no em dashes); url (the main Drive or Gmail link, if any); finishedAt (ms).
+${ASK_HOW[kind]||ASK_HOW.other}
+Before you finish, also do any other asks docs with status "queued" the same way (their brief field is the instruction).
+
+BRIEF:
+${brief}`; }
+let lastFire=0;
+async function fireAsk(id,kind,brief){
+  const trig=(S.config&&(S.config.scanTriggerId))||SCAN_TRIG_DEFAULT;
+  if(!mcp){ toast("Saved. It runs with the next scan."); return; }
+  try{ await mcp.callTool("Claude Code Remote","fire_trigger",{trigger_id:trig,text:askText(id,kind,brief)}); lastFire=Date.now();
+    if(db) try{ await db.doc("asks/"+id).set({...(clean(S.asks.find(a=>a.id===id))||{}),firedAt:Date.now()}); }catch(_){}
+    toast("Claude is on it. The result shows up on On Deck in a few minutes."); }
+  catch(e){ toast(e&&e.code==="approval_required"?"Allow Claude Code Remote for this page, then tap Try again.":"Couldn't start Claude. It's saved; tap Try again on On Deck."); }
+}
+async function askClaude(brief){
+  if(!brief) return;
+  if(!db){ copyText(brief); toast("The store isn't available here. The brief is copied."); return; }
+  const kind=askKind(brief), id=askId(brief), cur=S.asks.find(a=>a.id===id);
+  if(cur&&(cur.status==="queued"||cur.status==="working")&&Date.now()-(cur.ts||0)<45*60e3){ toast("Claude is already on this one. Watch On Deck."); return; }
+  const doc={kind,title:askTitle(kind,brief),brief,status:"queued",ts:Date.now(),result:"",url:""};
+  try{ await db.doc("asks/"+id).set(doc); }catch(_){ copyText(brief); toast("Couldn't save the job. The brief is copied instead."); return; }
+  await fireAsk(id,kind,brief);
+}
+function copyText(t){ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{},()=>{ try{ const x=document.createElement("textarea"); x.value=t; document.body.appendChild(x); x.select(); document.execCommand("copy"); x.remove(); }catch(_){} }); }
 document.addEventListener("click", e=>{
   const a=e.target.closest('a[href^="https://claude.ai/new"]'); if(!a) return;
   e.preventDefault(); e.stopPropagation();
   let brief=""; try{ brief=decodeURIComponent((a.href.split("?q=")[1]||"")); }catch(_){}
-  const done=()=>{ let w=null; try{ w=window.open(a.href,"_blank","noopener"); }catch(_){}
-    if(w===null||w===undefined) showHandoff(a.href,brief); else toast("Opening Claude. The brief is also copied, paste it if the chat is empty."); };
-  if(navigator.clipboard&&brief) navigator.clipboard.writeText(brief).then(done,done); else done();
+  askClaude(brief);
 }, true);
-function showHandoff(href,brief){
-  let d=document.getElementById("handoff"); if(!d){ d=document.createElement("div"); d.id="handoff"; document.body.appendChild(d); }
-  d.innerHTML=`<div class="hbox" role="dialog" aria-label="Hand off to Claude"><div class="pickh">Your browser blocked the new tab</div>
-    <div class="s">The brief is copied. Open Claude and paste it, or copy it from here.</div>
-    <textarea readonly>${esc(brief)}</textarea>
-    <div class="pickrow"><a class="pbtn" href="${esc(href)}" target="_top" rel="noopener" style="text-decoration:none">Open Claude</a><button class="act" type="button" id="handoff-copy">Copy again</button><button class="act" type="button" id="handoff-x">Close</button></div></div>`;
-  d.hidden=false;
-  d.querySelector("#handoff-x").onclick=()=>{ d.hidden=true; };
-  d.querySelector("#handoff-copy").onclick=()=>{ const t=d.querySelector("textarea"); t.select(); (navigator.clipboard?navigator.clipboard.writeText(brief):Promise.reject()).then(()=>toast("Copied"),()=>{ try{ document.execCommand("copy"); toast("Copied"); }catch(_){ toast("Select the text to copy it"); } }); };
+function renderAsks(){
+  const el=document.getElementById("asks"), sec=document.getElementById("asks-sec"); if(!el) return;
+  const cut=Date.now()-7*864e5, list=(S.asks||[]).filter(a=>a.status!=="cleared"&&(a.ts||0)>=cut).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  sec.hidden=!list.length; document.getElementById("asks-n").textContent=list.length?list.length+"":"";
+  el.innerHTML=list.map(a=>{ const stuck=(a.status==="queued"&&Date.now()-(a.firedAt||a.ts||0)>15*60e3)||(a.status==="working"&&Date.now()-(a.startedAt||a.ts||0)>50*60e3);
+    const cls=a.status==="done"?"ok":a.status==="needs"||a.status==="failed"||stuck?"hot":"soon";
+    return `<div class="row a-qam" data-ask="${esc(a.id)}"><div class="ico">${a.status==="done"?SVG.check:a.status==="needs"?SVG.nudge:SVG.clock}</div>
+      <div class="txt"><div class="t">${esc(a.title||"Claude job")}</div><div class="s">${esc(ASK_LABEL[a.status]||a.status)}${stuck?" · seems stuck, tap Try again":""}${a.url&&safeUrl(a.url)?` · <a href="${esc(a.url)}" target="_blank" rel="noopener">open ↗</a>`:""}</div>
+      ${a.result?`<details class="why" ${a.status==="needs"?"open":""}><summary>Result</summary><div>${esc(a.result)}</div></details>`:""}</div>
+      <span class="when ${cls==="hot"?"hot":""}">${esc(whenLabel(ymd(new Date(a.ts||Date.now()))))}</span>
+      <div class="acts">${a.status!=="done"?`<button class="act" type="button" data-askretry="${esc(a.id)}">Try again</button>`:""}<button class="act" type="button" data-askcopy="${esc(a.id)}">Copy brief</button><button class="act no" type="button" data-askclear="${esc(a.id)}">${SVG.x}Clear</button></div></div>`; }).join("");
 }
+document.addEventListener("click", e=>{
+  const r=e.target.closest("[data-askretry]"), c=e.target.closest("[data-askcopy]"), x=e.target.closest("[data-askclear]"); if(!r&&!c&&!x) return;
+  const a=S.asks.find(y=>y.id===(r||c||x).dataset[r?"askretry":c?"askcopy":"askclear"]); if(!a) return;
+  if(c){ copyText(a.brief||""); toast("Brief copied"); return; }
+  if(x){ dbWrite("asks/"+a.id,{status:"cleared"},a.title||"job",true); return; }
+  (async()=>{ try{ await db.doc("asks/"+a.id).set({...clean(a),status:"queued",ts:Date.now(),result:a.result||""}); }catch(_){} fireAsk(a.id,a.kind,a.brief||""); })();
+});
 document.addEventListener("click", e=>{
   const b=e.target.closest("[data-do]");
   if(b){ const row=b.closest(".row"), id=row&&row.dataset.id; if(!id) return; const d=b.dataset.do;
@@ -1841,7 +1898,7 @@ function subDoc(path,key){ db.doc(path).onSnapshot(d=>{ S[key]=d.exists?d.data()
   [db,mcp,sample,dict]=await Promise.all(["db","mcp","sample","dictation"].map(n=>c.use(n).catch(()=>null)));
   if(db){
     ["items","state","timeline","goals","cv","briefs","thursday","opps","pipeline","waiting","interfolio","classes","attendance","reimb"].forEach(k=>sub(k,k));
-    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims"); sub("invpay","invpay");
+    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims"); sub("asks","asks"); sub("invpay","invpay");
     sub("undo","undo",{order:"ts",dir:"desc",limit:150});
     subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach"); subDoc("meta/cards","cards"); subDoc("meta/memorials","memorials"); subDoc("meta/lock","lock");
   }
