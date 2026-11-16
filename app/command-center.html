@@ -166,6 +166,11 @@ pre.fu{white-space:pre-wrap;font:inherit;font-size:13px;margin:6px 0}
 .hchip{font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--sunk);color:var(--ink)}
 .hchip.ok{background:color-mix(in srgb,var(--c-emerald) 22%,var(--surface))}.hchip.off{opacity:.75}
 .hchip.bad{background:var(--c-pink);color:var(--c-finn);font-weight:700}
+#handoff{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+#handoff[hidden]{display:none}
+.hbox{background:var(--surface);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:560px}
+.hbox textarea{width:100%;height:180px;margin-top:8px;border:1px solid var(--line);border-radius:8px;padding:8px;font:12.5px/1.45 var(--f-mono);background:var(--bg);color:var(--ink)}
+@media (min-width:700px){#handoff{align-items:center}.hbox{border-radius:16px}}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -1578,6 +1583,26 @@ function airtableUpdate(table, rec, fields, prev, label, ok){
   });
 }
 
+/* Claude hand-off links (Apply, Brief me, Build packet, Merge): copy the brief, then open a new chat.
+   If the browser blocks the new tab, show the brief with a plain link so nothing is lost. */
+document.addEventListener("click", e=>{
+  const a=e.target.closest('a[href^="https://claude.ai/new"]'); if(!a) return;
+  e.preventDefault(); e.stopPropagation();
+  let brief=""; try{ brief=decodeURIComponent((a.href.split("?q=")[1]||"")); }catch(_){}
+  const done=()=>{ let w=null; try{ w=window.open(a.href,"_blank","noopener"); }catch(_){}
+    if(w===null||w===undefined) showHandoff(a.href,brief); else toast("Opening Claude. The brief is also copied, paste it if the chat is empty."); };
+  if(navigator.clipboard&&brief) navigator.clipboard.writeText(brief).then(done,done); else done();
+}, true);
+function showHandoff(href,brief){
+  let d=document.getElementById("handoff"); if(!d){ d=document.createElement("div"); d.id="handoff"; document.body.appendChild(d); }
+  d.innerHTML=`<div class="hbox" role="dialog" aria-label="Hand off to Claude"><div class="pickh">Your browser blocked the new tab</div>
+    <div class="s">The brief is copied. Open Claude and paste it, or copy it from here.</div>
+    <textarea readonly>${esc(brief)}</textarea>
+    <div class="pickrow"><a class="pbtn" href="${esc(href)}" target="_top" rel="noopener" style="text-decoration:none">Open Claude</a><button class="act" type="button" id="handoff-copy">Copy again</button><button class="act" type="button" id="handoff-x">Close</button></div></div>`;
+  d.hidden=false;
+  d.querySelector("#handoff-x").onclick=()=>{ d.hidden=true; };
+  d.querySelector("#handoff-copy").onclick=()=>{ const t=d.querySelector("textarea"); t.select(); (navigator.clipboard?navigator.clipboard.writeText(brief):Promise.reject()).then(()=>toast("Copied"),()=>{ try{ document.execCommand("copy"); toast("Copied"); }catch(_){ toast("Select the text to copy it"); } }); };
+}
 document.addEventListener("click", e=>{
   const b=e.target.closest("[data-do]");
   if(b){ const row=b.closest(".row"), id=row&&row.dataset.id; if(!id) return; const d=b.dataset.do;
