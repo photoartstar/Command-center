@@ -10,6 +10,8 @@ You are running the BROWSER PASS for Sean Fader's Command Center (https://claude
 
 LOCK: read meta/lock. If until is later than now and set by another scan, wait 3 minutes and retry up to 3 times, then stop. Otherwise set meta/lock = {by: "browser pass", ts, until: now + 25 minutes}; clear it at the end (until: 0), also on failure.
 
+FEEDBACK: also read the `feedback` collection and meta/learned before writing items, and follow them (hidden kinds stay hidden, moved items keep Sean's area).
+
 HARD RULES: list the `state` collection first and never create or re-surface any item whose state is done or wrong. Read only: never send, reply, archive, label, delete, like, comment, follow, post or change any setting. Work in a new tab and close every tab you opened. Never use em dashes or double hyphens.
 
 1. NYU mail (every run). Open mail.google.com and switch to the account whose page title shows sf130@nyu.edu (check the title before trusting it). Search `in:inbox newer_than:3d`. Read candidate threads fully. Keep real asks of Sean (students, Tisch, DPI, committees, NYU offices); skip anything where Sean's message is the latest. Write items/nyu-<thread id from the URL> with area "teaching" (or "qam"/"practice" when clearly so), kind "email" for student mail waiting on a reply, a short title, who, due when stated, surface by the usual lead times, src {type: "gmail", url, label: "NYU mail"}. Also catch Brightspace notices and meeting invitations. Reuse the same id for the same thread; never a second item.

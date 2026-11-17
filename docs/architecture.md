@@ -43,6 +43,8 @@ Refresh button: starts the scan scheduled task through the Claude Code Remote co
 | `invpay/<invoiceId>` | Manual Mark paid, incl. partial `{amount, total, ts}` | page |
 | `meta/memorials` | Memorials class: week, guests, projects, readings | morning pass, Claude |
 | `meta/lock` | `{by, ts, until}`: one scan or Refresh at a time | scans |
+| `feedback/<itemId>` | Sean's feedback on an On Deck item `{text, action: hide|move|note, area, fromArea, title, kind, src}`; scans learn from it | page |
+| `meta/learned` | `{rules: [...]}` what the scans learned from feedback | scans |
 | `followups/<invoiceId>` | Drafted 30-day invoice follow-up `{to, subject, body}` | morning scan |
 
 Version 3 of the page (Nov 15) also reads Zoho Books live (bank and card balances, unpaid invoices, items) and can create a customer plus a DRAFT invoice. "Tell Claude" uses the page's `sample` capability to file a typed or dictated note; when that is unavailable it saves the note with `needsFiling: true` for the next scan.

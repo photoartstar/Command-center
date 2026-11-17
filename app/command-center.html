@@ -171,6 +171,9 @@ pre.fu{white-space:pre-wrap;font:inherit;font-size:13px;margin:6px 0}
 .hbox{background:var(--surface);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:560px}
 .hbox textarea{width:100%;height:180px;margin-top:8px;border:1px solid var(--line);border-radius:8px;padding:8px;font:12.5px/1.45 var(--f-mono);background:var(--bg);color:var(--ink)}
 @media (min-width:700px){#handoff{align-items:center}.hbox{border-radius:16px}}
+.fbbox{display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:6px}
+.fbbox textarea{flex:1 1 100%;min-height:60px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:var(--bg);color:var(--ink)}
+.fbbox select{border:1px solid var(--line);border-radius:10px;padding:6px 8px;font:inherit;font-size:13px;background:var(--bg);color:var(--ink)}
 .note{font-size:12.5px;color:var(--muted);padding:8px 14px;border-top:1px dashed var(--line)}
 .err{color:var(--hot)}
 
@@ -494,7 +497,7 @@ const KIND_ICON = {launch:"λ",talk:SVG.mic,sign:SVG.pen,closing:SVG.flag,meetin
   social:SVG.star,birthday:SVG.gift,travel:SVG.plane,home:SVG.home,document:SVG.doc,health:SVG.heart,family:SVG.heart,visa:SVG.doc,job:SVG.job,reimbursement:SVG.bill,grading:SVG.doc};
 const PERSONAL_GROUPS = [["birthday","Birthdays and gifts"],["family","Family"],["travel","Travel"],["home","Home"],["document","Documents and renewals"],["visa","French visa"],["health","Health"]];
 
-const S = { asks:[], items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
+const S = { feedback:[], asks:[], items:[], state:{}, undo:[], timeline:[], goals:[], cv:[], briefs:[], thursday:[], opps:[], pipeline:{}, waiting:[],
   interfolio:[], classes:[], attendance:[], reimb:[], sort:{}, chlook:{}, txns:null, automatch:[], expected:[], followups:[], claims:[], alltx:null, invpay:[], memorials:null, lock:null, coa:null, zclients:null, status:null, config:null, nyu:null, teach:null, cards:null,
   people:null, funding:null, social:null, bank:null, invoices:null, zitems:null, errors:{}, loaded:{}, selMs:null };
 let db=null, mcp=null, sample=null, dict=null;
@@ -548,7 +551,8 @@ function onDeck(it){
   return false;
 }
 const byDate = (a,b)=>(a.due||a.surface||"9999").localeCompare(b.due||b.surface||"9999");
-const openItems = area => S.items.filter(it=>it.area===area && !hiddenByState(it.id)).sort(byDate);
+const effArea = it => { const f=S.feedback.find(x=>x.id===it.id); return f&&f.action==="move"&&f.area?f.area:it.area; };
+const openItems = area => S.items.filter(it=>effArea(it)===area && !hiddenByState(it.id)).sort(byDate);
 
 function rowHTML(it){
   const icon = KIND_ICON[it.kind] || SVG.check;
@@ -568,7 +572,10 @@ function rowHTML(it){
       <button class="act" data-do="snooze" type="button">${SVG.clock}Snooze</button>
       <span class="snz" hidden><button class="act" data-do="snz1" type="button">Tomorrow</button><button class="act" data-do="snz3" type="button">3 days</button><button class="act" data-do="snzThu" type="button">Thursday</button><button class="act" data-do="snzMon" type="button">Monday</button></span>
       <button class="act more" data-do="more" type="button" aria-label="More actions">⋯</button>
-      <span class="morebox" hidden>${brief?`<a class="act go" href="${esc(brief)}" target="_blank" rel="noopener">Brief me</a>`:""}<button class="act no" data-do="wrong" type="button">${SVG.x}Doesn't belong</button></span>
+      <span class="morebox" hidden>${brief?`<a class="act go" href="${esc(brief)}" target="_blank" rel="noopener">Brief me</a>`:""}<button class="act" data-do="fb" type="button">Feedback</button></span>
+      <span class="fbbox" hidden><textarea data-fbtext="${esc(it.id)}" maxlength="400" placeholder="Tell Claude: why it doesn't belong, where it should be, or anything to learn" aria-label="Feedback"></textarea>
+        <select data-fbwhere="${esc(it.id)}" aria-label="Where it belongs"><option value="keep">Keep it here</option>${AREAS.filter(a=>a.k!==it.area).map(a=>`<option value="${a.k}">Move to ${esc(a.name)}</option>`).join("")}<option value="hide">Doesn't belong anywhere: hide it</option></select>
+        <button class="act ok" data-do="fbsave" type="button">Send feedback</button></span>
     </div></div>`;
 }
 function listInto(el, items, emptyText){
@@ -1715,6 +1722,13 @@ document.addEventListener("click", e=>{
   if(b){ const row=b.closest(".row"), id=row&&row.dataset.id; if(!id) return; const d=b.dataset.do;
     if(d==="snooze"){ const s=row.querySelector(".snz"); s.hidden=!s.hidden; return; }
     if(d==="more"){ const s=row.querySelector(".morebox"); s.hidden=!s.hidden; return; }
+    if(d==="fb"){ const s=row.querySelector(".fbbox"); s.hidden=!s.hidden; if(!s.hidden) s.querySelector("textarea").focus(); return; }
+    if(d==="fbsave"){ const it=S.items.find(x=>x.id===id)||S.waiting.find(x=>x.id===id)||{}; const text=row.querySelector("[data-fbtext]").value.trim(), where=row.querySelector("[data-fbwhere]").value;
+      if(!text&&where==="keep") return toast("Write a note or pick where it belongs.");
+      const action=where==="hide"?"hide":where==="keep"?"note":"move";
+      dbWrite("feedback/"+id,{text,action,area:action==="move"?where:null,fromArea:it.area||"",title:it.title||"",kind:it.kind||"",src:it.src&&it.src.type||"",ts:Date.now()},it.title||"feedback",false).then(ok=>{ if(!ok) return;
+        if(action==="hide") setItemState(id,"wrong"); else toast(action==="move"?"Moved. Claude will file things like this there from now on.":"Thanks. The next scan reads this and learns from it."); });
+      return; }
     if(d==="done"||d==="wrong") return setItemState(id,d);
     const until={snz1:addDays(TODAY(),1),snz3:addDays(TODAY(),3),snzThu:nextDow(4),snzMon:nextDow(1)}[d];
     if(until) return setItemState(id,"snoozed",ymd(until));
@@ -1903,7 +1917,7 @@ function subDoc(path,key){ db.doc(path).onSnapshot(d=>{ S[key]=d.exists?d.data()
   [db,mcp,sample,dict]=await Promise.all(["db","mcp","sample","dictation"].map(n=>c.use(n).catch(()=>null)));
   if(db){
     ["items","state","timeline","goals","cv","briefs","thursday","opps","pipeline","waiting","interfolio","classes","attendance","reimb"].forEach(k=>sub(k,k));
-    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims"); sub("asks","asks"); sub("invpay","invpay");
+    sub("sort","sort"); sub("charges","chlook"); sub("automatch","automatch"); sub("expected","expected"); sub("followups","followups"); sub("claims","claims"); sub("asks","asks"); sub("feedback","feedback"); sub("invpay","invpay");
     sub("undo","undo",{order:"ts",dir:"desc",limit:150});
     subDoc("meta/status","status"); subDoc("meta/config","config"); subDoc("meta/nyu","nyu"); subDoc("meta/teaching","teach"); subDoc("meta/cards","cards"); subDoc("meta/memorials","memorials"); subDoc("meta/lock","lock");
   }
