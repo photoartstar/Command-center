@@ -1541,7 +1541,8 @@ function renderPersonal(){
   }).join("");
 }
 
-const SOURCES=[["gmail","Gmail",8],["nyu","NYU mail",8],["calendar","Calendar",8],["zoho","Zoho",30],["airtable","Airtable",30],["meta","Meta (Instagram)",30*24]];
+const SOURCES=[["gmail","Gmail",15],["nyu","NYU mail",15],["calendar","Calendar",15],["zoho","Zoho",30],["airtable","Airtable",30],["meta","Instagram",30*24]];
+const KNOWN_GAPS=/^zoho bills$/i;
 function renderHealth(){
   const el=document.getElementById("health"); if(!el) return; const src=(S.status&&S.status.sources)||{};
   const fmt=ms=>new Date(ms).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"});
@@ -1549,7 +1550,7 @@ function renderHealth(){
   const chips=SOURCES.map(([k,label,hrs])=>{ const s=src[k]||null, err=live[k]?(live[k].code||"error"):(s&&s.ok===false?(s.err||"failed"):null);
     const stale=s&&s.ts&&(Date.now()-s.ts)>hrs*3600e3; let cls="ok", txt;
     if(err){ cls="bad"; txt=label+": "+(/reauth|expired|login/i.test(err)?"login expired":"sync failed"); }
-    else if(!s||!s.ts){ cls=k==="nyu"||k==="meta"?"bad":"off"; txt=label+": "+(k==="nyu"?"not connected (needs the Mac)":k==="meta"?"not connected":"waiting for first scan"); }
+    else if(!s||!s.ts){ cls="off"; txt=label+": "+(k==="nyu"?"not set up yet":k==="meta"?"not set up yet":"waiting for first scan"); }
     else if(stale){ cls="bad"; txt=label+": stale, last synced "+fmt(s.ts); }
     else txt=label+" ✓ "+fmt(s.ts);
     return `<span class="hchip ${cls}" title="${esc(err||"")}">${esc(txt)}</span>`; }).join("");
@@ -1561,7 +1562,7 @@ function renderSync(){
   let text, cls;
   if(!db){ text="Store unavailable in this view"; cls="err"; }
   else if(!live){ text="Scans are off until switch-on"+(st&&st.lastScan?` · last data ${fmt(st.lastScan)}`:""); cls="off"; }
-  else { text=st&&st.lastScan?"Updated "+fmt(st.lastScan):"Waiting for first scan"; cls=st&&st.failed&&st.failed.length?"err":"ok"; if(st&&st.failed&&st.failed.length) text+=" · couldn't read "+st.failed.join(", "); }
+  else { const fl=((st&&st.failed)||[]).filter(f=>!KNOWN_GAPS.test(String(f).trim())); text=st&&st.lastScan?"Updated "+fmt(st.lastScan):"Waiting for first scan"; cls=fl.length?"err":"ok"; if(fl.length) text+=" · couldn't read "+fl.join(", "); }
   dot.className="dot "+cls; t.textContent=text; renderHealth();
 }
 function renderAll(){
