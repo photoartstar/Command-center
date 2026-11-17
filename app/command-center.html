@@ -1541,8 +1541,8 @@ function renderPersonal(){
   }).join("");
 }
 
-const SOURCES=[["gmail","Gmail",15],["nyu","NYU mail",15],["calendar","Calendar",15],["zoho","Zoho",30],["airtable","Airtable",30],["meta","Instagram",30*24]];
-const KNOWN_GAPS=/^zoho bills$/i;
+const SOURCES=[["gmail","Gmail",15],["nyu","NYU mail",15],["brightspace","Brightspace",30],["calendar","Calendar",15],["zoho","Zoho",30],["airtable","Airtable",30],["meta","Instagram",30*24]];
+const KNOWN_GAPS=/^(zoho bills|brightspace)$/i;
 function renderHealth(){
   const el=document.getElementById("health"); if(!el) return; const src=(S.status&&S.status.sources)||{};
   const fmt=ms=>new Date(ms).toLocaleString([], {weekday:"short",hour:"numeric",minute:"2-digit"});
@@ -1550,7 +1550,7 @@ function renderHealth(){
   const chips=SOURCES.map(([k,label,hrs])=>{ const s=src[k]||null, err=live[k]?(live[k].code||"error"):(s&&s.ok===false?(s.err||"failed"):null);
     const stale=s&&s.ts&&(Date.now()-s.ts)>hrs*3600e3; let cls="ok", txt;
     if(err){ cls="bad"; txt=label+": "+(/reauth|expired|login/i.test(err)?"login expired":"sync failed"); }
-    else if(!s||!s.ts){ cls="off"; txt=label+": "+(k==="nyu"||k==="meta"?"read in your browser, needs your computer connected":"waiting for first scan"); }
+    else if(!s||!s.ts){ cls="off"; txt=label+": "+(k==="nyu"||k==="meta"||k==="brightspace"?"read in your browser, needs your computer connected":"waiting for first scan"); }
     else if(stale){ cls="bad"; txt=label+": stale, last synced "+fmt(s.ts); }
     else txt=label+" ✓ "+fmt(s.ts);
     return `<span class="hchip ${cls}" title="${esc(err||"")}">${esc(txt)}</span>`; }).join("");
